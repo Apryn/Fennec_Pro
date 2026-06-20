@@ -1,0 +1,72 @@
+name: Build Release Binaries
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java (Java 21)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          channel: 'stable'
+
+      - name: Fetch Pub Packages
+        run: |
+          cd fennec_pro_mobile
+          flutter pub get
+
+      - name: Build Release APK
+        run: |
+          cd fennec_pro_mobile
+          flutter build apk --release
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: fennec-pro-release-apk
+          path: fennec_pro_mobile/build/app/outputs/flutter-apk/app-release.apk
+
+  build-ios:
+    name: Build iOS App
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          channel: 'stable'
+
+      - name: Fetch Pub Packages
+        run: |
+          cd fennec_pro_mobile
+          flutter pub get
+
+      - name: Build iOS (No Codesign)
+        run: |
+          cd fennec_pro_mobile
+          flutter build ios --release --no-codesign
+
+      - name: Upload iOS Runner App
+        uses: actions/upload-artifact@v4
+        with:
+          name: fennec-pro-release-ios
+          path: fennec_pro_mobile/build/ios/iphoneos/Runner.app

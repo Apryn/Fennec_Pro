@@ -1,0 +1,28 @@
+name: fennec_pro_mobile
+description: "Fennec Pro - Premium Trading Bot Assistant & Lead-Magnet App"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.5
+  google_fonts: ^5.0.0
+  intl: ^0.18.0
+  webview_flutter: ^4.4.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  
+  # Cyber-theme glow assets or graphic overlays can be declared here if needed
+  # assets:
+  #   - assets/images/

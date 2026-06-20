@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FENNEC PRO - Web Preview Simulator</title>
+    <!-- Google Fonts: Inter & Space Grotesk for digital metrics -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="simulator-container">
+        <!-- Floating Info Header for the Developer/User outside the phone -->
+        <div class="web-info-panel">
+            <h1>FENNEC PRO <span class="badge">SIMULATOR PREVIEW</span></h1>
+            <p>Ini adalah simulator interaktif yang meniru visual dan logika bisnis aplikasi mobile Fennec Pro.</p>
+            <div class="instructions">
+                <h3>💡 Panduan Pengujian Trader ID:</h3>
+                <ul>
+                    <li>Masukkan <strong>Trader ID Asli Anda (5-15 digit angka)</strong> atau <strong>88888</strong>: Login Berhasil.</li>
+                    <li>Masukkan <strong>77777</strong>: Simulasi Error Affiliate terdaftar di Pusat (Wrong Affiliate).</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Realistic Phone Bezel Wrapper -->
+        <div class="phone-frame">
+            <div class="phone-speaker"></div>
+            <div class="phone-screen">
+                
+                <!-- STATE A: AFFILIATE AUTHENTICATION LOCK SCREEN -->
+                <div id="auth-screen" class="app-screen active">
+                    <div class="screen-content justify-center">
+                        <div class="logo-container animate-pulse-glow">
+                            <!-- Geometric Cyber Fennec Fox SVG Logo -->
+                            <svg class="fennec-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <!-- Large Stylized Fox Ears -->
+                                <path d="M50 45 L15 15 L35 48 Z" fill="url(#ear-glow-left)" stroke="#ffb300" stroke-width="1.5" />
+                                <path d="M50 45 L85 15 L65 48 Z" fill="url(#ear-glow-right)" stroke="#ffb300" stroke-width="1.5" />
+                                <!-- Inner Ears Accent -->
+                                <path d="M48 45 L25 24 L38 47 Z" fill="#ff3d00" opacity="0.6" />
+                                <path d="M52 45 L75 24 L62 47 Z" fill="#ff3d00" opacity="0.6" />
+                                <!-- Face Core -->
+                                <polygon points="50,78 30,48 70,48" fill="#1e222b" stroke="#00c853" stroke-width="2" />
+                                <!-- Fox Nose/Muzzle -->
+                                <polygon points="50,78 43,65 57,65" fill="#00c853" />
+                                <!-- Glowing Eyes -->
+                                <polygon points="38,53 45,55 42,50" fill="#00c853" class="fox-eye" />
+                                <polygon points="62,53 55,55 58,50" fill="#00c853" class="fox-eye" />
+                                <!-- Defs for Gradients -->
+                                <defs>
+                                    <linearGradient id="ear-glow-left" x1="15" y1="15" x2="50" y2="45" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#ffb300" stop-opacity="0.8"/>
+                                        <stop offset="100%" stop-color="#131722" stop-opacity="0.1"/>
+                                    </linearGradient>
+                                    <linearGradient id="ear-glow-right" x1="85" y1="15" x2="50" y2="45" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#ffb300" stop-opacity="0.8"/>
+                                        <stop offset="100%" stop-color="#131722" stop-opacity="0.1"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <h2 class="auth-title">FENNEC PRO</h2>
+                        <div class="auth-subtitle">SECURE ACTIVATION</div>
+                        
+                        <p class="auth-desc">Masukkan Trader ID Olymp Trade Anda untuk mengaktifkan fitur otomatisasi Fennec Pro.</p>
+                        
+                        <div class="form-group">
+                            <label for="trader-id-input">TRADER ID OLYMP TRADE</label>
+                            <input type="text" id="trader-id-input" placeholder="Contoh: 88888" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        </div>
+
+                        <!-- Error Toast Message inside screen -->
+                        <div id="auth-alert" class="alert-message hidden">
+                            <span id="alert-text"></span>
+                        </div>
+
+                        <button id="activate-btn" class="btn-primary ripple">
+                            AKTIVASI SEKARANG
+                        </button>
+
+                        <div class="auth-footer-info">
+                            Powered by Fennec Engine v4.2 • Secure SSL
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STATE B: MAIN TRADING DASHBOARD (Post-Activation) -->
+                <div id="dashboard-screen" class="app-screen">
+                    <!-- Dashboard Sub-Pages Container (History, Web/Chart, Profile, Personalise) -->
+                    <div class="dashboard-viewport">
+                        
+                        <!-- TAB 1: MAIN HOME (THE TRADING LOGIC AND SIMULATION METRICS) -->
+                        <div id="home-subpage" class="subpage active">
+                            <!-- Header Widget -->
+                            <div class="app-header">
+                                <div class="header-left">
+                                    <svg class="header-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <polygon points="50,85 15,35 85,35" fill="#131722" stroke="#ffb300" stroke-width="3" />
+                                        <polygon points="50,85 30,55 70,55" fill="#00c853" />
+                                        <polygon points="40,45 50,30 60,45" fill="#ff3d00" />
+                                    </svg>
+                                    <span class="header-title">FENNEC PRO</span>
+                                </div>
+                                <div class="header-right">
+                                    <span class="pulse-dot"></span>
+                                    <span class="server-status">Server: Online</span>
+                                </div>
+                            </div>
+
+                            <!-- Main Metrics Card -->
+                            <div class="metrics-card card-glow-green">
+                                <div class="card-label">PROFIT HARI INI (REAL WALLET)</div>
+                                <div class="profit-counter-container">
+                                    <span class="currency">Rp</span>
+                                    <span id="profit-counter" class="profit-value">16.659.003</span>
+                                </div>
+                                 <div class="next-trade-banner">
+                                     <span class="next-trade-label">Saldo Aktif:</span>
+                                     <span id="active-balance-value" class="next-trade-value-style green" style="margin-right: 10px;">Rp 10.000.000</span>
+                                     <span class="next-trade-label">Berikutnya:</span>
+                                     <span id="next-trade-value" class="next-trade-value-style green">Rp 14.000</span>
+                                 </div>
+                            </div>
+
+                            <!-- Runtime Grid (2 Columns) -->
+                            <div class="metrics-grid">
+                                <div class="grid-card">
+                                    <div class="grid-card-label">Jam Sekarang</div>
+                                    <div id="live-clock" class="grid-card-value">20:00:00</div>
+                                </div>
+                                <div class="grid-card">
+                                    <div class="grid-card-label">Durasi Berjalan</div>
+                                    <div id="stopwatch" class="grid-card-value">00:00:00</div>
+                                </div>
+                            </div>
+
+                            <!-- Status Banner -->
+                            <div id="status-banner" class="status-banner active">
+                                <span class="status-indicator-icon animate-pulse-glow-green"></span>
+                                <span id="status-banner-text" class="status-text">Status: Fennec sedang bekerja...</span>
+                            </div>
+
+                            <!-- Simulation Controls -->
+                            <div class="controls-container">
+                                <button id="config-btn" class="btn-secondary ripple">
+                                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                    </svg>
+                                    KONFIGURASI
+                                </button>
+                                <button id="stop-bot-btn" class="btn-alert-red ripple">
+                                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    </svg>
+                                    <span id="stop-bot-text">STOP BOT</span>
+                                </button>
+                            </div>
+
+                            <!-- Developer Test Section (Visual for Streamers/Developers) -->
+                            <div class="dev-tools-panel">
+                                <div class="dev-tools-header">DEVELOPER MODE (SIMULATION)</div>
+                                <div class="dev-buttons">
+                                    <button id="simulate-win-btn" class="btn-dev btn-dev-win ripple">Simulate WIN</button>
+                                    <button id="simulate-loss-btn" class="btn-dev btn-dev-loss ripple">Simulate LOSS</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: RIWAYAT (TRADE LOG HISTORY) -->
+                        <div id="history-subpage" class="subpage">
+                            <div class="subpage-header">RIWAYAT TRANSAKSI</div>
+                            <div class="history-list-container">
+                                <div class="table-wrapper">
+                                    <table class="history-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Waktu</th>
+                                                <th>Asset</th>
+                                                <th>Jumlah</th>
+                                                <th>Hasil</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="history-rows">
+                                            <!-- Dynamic content populated by JS -->
+                                            <tr class="empty-row">
+                                                <td colspan="4">Belum ada transaksi simulasi</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: WEB (BUILT-IN BROWSER CHARTS VIEW) -->
+                        <div id="web-subpage" class="subpage">
+                            <div class="subpage-header">MOCK PLATFORM CHART</div>
+                            <div class="web-iframe-container">
+                                <!-- Real high-fidelity trading widget from TradingView (Static iframe widget) -->
+                                <div class="trading-chart-simulator">
+                                    <div class="chart-header">
+                                        <span class="active-pair">BTC/USD (Crypto)</span>
+                                        <span class="chart-price positive">Rp 1.054.402.100 (+1.4%)</span>
+                                    </div>
+                                    <!-- A visually appealing live SVG chart element that animates -->
+                                    <svg class="mock-chart-svg" viewBox="0 0 300 150">
+                                        <defs>
+                                            <linearGradient id="chart-area-grad" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stop-color="#00c853" stop-opacity="0.3"/>
+                                                <stop offset="100%" stop-color="#00c853" stop-opacity="0"/>
+                                            </linearGradient>
+                                        </defs>
+                                        <!-- Grid lines -->
+                                        <line x1="0" y1="30" x2="300" y2="30" stroke="#1e222b" stroke-width="1" stroke-dasharray="2" />
+                                        <line x1="0" y1="60" x2="300" y2="60" stroke="#1e222b" stroke-width="1" stroke-dasharray="2" />
+                                        <line x1="0" y1="90" x2="300" y2="90" stroke="#1e222b" stroke-width="1" stroke-dasharray="2" />
+                                        <line x1="0" y1="120" x2="300" y2="120" stroke="#1e222b" stroke-width="1" stroke-dasharray="2" />
+                                        
+                                        <!-- Chart area path -->
+                                        <path d="M 0 130 Q 30 110 60 120 T 120 70 T 180 90 T 240 50 T 300 40 L 300 150 L 0 150 Z" fill="url(#chart-area-grad)" />
+                                        <!-- Chart line path -->
+                                        <path d="M 0 130 Q 30 110 60 120 T 120 70 T 180 90 T 240 50 T 300 40" fill="none" stroke="#00c853" stroke-width="3" id="live-chart-line"/>
+                                        <circle cx="300" cy="40" r="4" fill="#00c853" class="pulsing-chart-dot"/>
+                                    </svg>
+                                    <div class="chart-indicators">
+                                        <div class="indicator-badge">RSI(14): 62.4 (Netral)</div>
+                                        <div class="indicator-badge">MACD: Bullish Crossover</div>
+                                    </div>
+                                    <div class="chart-mock-web-address">
+                                        <span class="lock-icon">🔒</span> https://olymptrade.com/platform
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 4: PROFILE (USER PROFILE SETTINGS) -->
+                        <div id="profile-subpage" class="subpage">
+                            <div class="subpage-header">PROFIL TRADER</div>
+                            <div class="profile-card">
+                                <div class="avatar-large">
+                                    <span class="avatar-initials">TR</span>
+                                </div>
+                                <div class="profile-detail-item">
+                                    <span class="profile-label">Trader ID Olymp Trade</span>
+                                    <span id="profile-trader-id" class="profile-value-text">88888</span>
+                                </div>
+                                <div class="profile-detail-item">
+                                    <span class="profile-label">Status Lisensi</span>
+                                    <span class="profile-badge-active">VIP FENNEC ACCESS</span>
+                                </div>
+                                <div class="profile-detail-item">
+                                    <span class="profile-label">Affiliate Sub-ID</span>
+                                    <span class="profile-value-text text-amber">MY_SPECIFIC_SUB_ID</span>
+                                </div>
+                                <div class="profile-detail-item">
+                                    <span class="profile-label">Metode Koneksi</span>
+                                    <span class="profile-value-text">API Automated Websocket</span>
+                                </div>
+                                <button id="logout-btn" class="btn-logout ripple">
+                                    KELUAR / DEAKTIVASI
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- TAB 5: PERSONALISE (THEME ENGINE SWITCHER) -->
+                        <div id="personalise-subpage" class="subpage">
+                            <div class="subpage-header">PERSONALISASI TAMPILAN</div>
+                            <div class="personalise-container">
+                                <p class="personalise-desc">Ubah aksen neon visual dashboard untuk menyesuaikan dengan overlay live stream Anda.</p>
+                                
+                                <div class="theme-option-group">
+                                    <label class="personalise-label">WARNA AKSEN UTAMA</label>
+                                    <div class="theme-grid">
+                                        <button class="theme-choice active" data-theme="neon-green" style="--btn-color: #00c853;">
+                                            <span class="dot" style="background-color: #00c853;"></span> Cyber Green
+                                        </button>
+                                        <button class="theme-choice" data-theme="electric-blue" style="--btn-color: #00d2ff;">
+                                            <span class="dot" style="background-color: #00d2ff;"></span> Electric Blue
+                                        </button>
+                                        <button class="theme-choice" data-theme="hot-pink" style="--btn-color: #ff007f;">
+                                            <span class="dot" style="background-color: #ff007f;"></span> Hot Pink
+                                        </button>
+                                        <button class="theme-choice" data-theme="toxic-purple" style="--btn-color: #9d00ff;">
+                                            <span class="dot" style="background-color: #9d00ff;"></span> Toxic Purple
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="theme-option-group">
+                                    <label class="personalise-label">GLOW STRENGTH</label>
+                                    <input type="range" id="glow-slider" class="range-slider" min="0" max="20" value="8">
+                                </div>
+
+                                <div class="theme-option-group">
+                                    <label class="personalise-label">TIKTOK OVERLAY PREVIEW</label>
+                                    <div class="toggle-container">
+                                        <span>High Contrast Stream Mode</span>
+                                        <label class="switch">
+                                            <input type="checkbox" id="contrast-toggle">
+                                            <span class="slider-round"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- BOTTOM NAVIGATION BAR -->
+                    <div class="bottom-nav">
+                        <button class="nav-item active" data-tab="home">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="9"></rect>
+                                <rect x="14" y="3" width="7" height="5"></rect>
+                                <rect x="14" y="12" width="7" height="9"></rect>
+                                <rect x="3" y="16" width="7" height="5"></rect>
+                            </svg>
+                            <span class="nav-label">Dashboard</span>
+                        </button>
+                        <button class="nav-item" data-tab="history">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="nav-label">Riwayat</span>
+                        </button>
+                        <button class="nav-item" data-tab="web">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                            </svg>
+                            <span class="nav-label">Web</span>
+                        </button>
+                        <button class="nav-item" data-tab="profile">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span class="nav-label">Profile</span>
+                        </button>
+                        <button class="nav-item" data-tab="personalise">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.02106 19.1625 5.0768 19.4054 5 19.625L4.5 21L5.875 20.5C6.0946 20.4232 6.3375 20.4789 6.5 20.6414C8.07632 22.0903 9.94828 22 12 22Z"></path>
+                                <circle cx="7.5" cy="10.5" r="1.5" fill="currentColor"></circle>
+                                <circle cx="11.5" cy="7.5" r="1.5" fill="currentColor"></circle>
+                                <circle cx="16.5" cy="9.5" r="1.5" fill="currentColor"></circle>
+                            </svg>
+                            <span class="nav-label">Personalise</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CONFIGURATION MODAL (STATE B Pop-Up) -->
+                <div id="config-modal" class="modal-overlay hidden">
+                    <div class="modal-card">
+                        <div class="modal-header">
+                            <div class="modal-title-group">
+                                <h3>Konfigurasi Trading</h3>
+                                <span class="modal-subtitle">Simpan pengaturan sebelum menjalankan bot</span>
+                            </div>
+                            <button id="close-modal-x" class="btn-close-x">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Toggle Beralih otomatis ke demo -->
+                            <div class="form-toggle-row">
+                                <div class="toggle-info">
+                                    <span class="toggle-title">Beralih otomatis ke demo</span>
+                                    <span class="toggle-subtitle">Pindah ke demo saat loss sesuai stop loss, kembali saat menang</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="auto-demo-toggle">
+                                    <span class="slider-round"></span>
+                                </label>
+                            </div>
+
+                            <!-- Toggle Otomatisasi Eksekusi -->
+                            <div class="form-toggle-row">
+                                <div class="toggle-info">
+                                    <span class="toggle-title">Otomatisasi Eksekusi (Auto-Trade)</span>
+                                    <span class="toggle-subtitle">Klik otomatis UP/DOWN langsung di market dengan sistem jeda acak anti-ban</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="auto-trade-toggle">
+                                    <span class="slider-round"></span>
+                                </label>
+                            </div>
+                            
+                            <!-- Base & Soft Martingale settings at the top to preserve simulation capabilities -->
+                            <div class="nominal-section">
+                                <div class="nominal-title">NOMINAL TRANSAKSI SIMULASI</div>
+                                <div class="form-grid-nominal">
+                                    <div class="form-group-column">
+                                        <label for="base-trade-input">Base Trade</label>
+                                        <div class="currency-input-wrapper-small">
+                                            <span class="currency-prefix-small">Rp</span>
+                                            <input type="text" id="base-trade-input" value="14.000">
+                                        </div>
+                                    </div>
+                                    <div class="form-group-column">
+                                        <label for="martingale-trade-input">Soft Martingale</label>
+                                        <div class="currency-input-wrapper-small">
+                                            <span class="currency-prefix-small">Rp</span>
+                                            <input type="text" id="martingale-trade-input" value="17.000">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-divider-line"></div>
+
+                            <!-- Two Columns matching Koala S Pro screen -->
+                            <div class="config-columns">
+                                <div class="config-column">
+                                    <div class="column-title">Manajemen Risiko</div>
+                                    <div class="form-group-column">
+                                        <label for="martingale-multiplier-input">Martingale</label>
+                                        <input type="text" id="martingale-multiplier-input" value="122%">
+                                    </div>
+                                    <div class="form-group-column">
+                                        <label for="reset-martingale-select">Reset Martingale</label>
+                                        <select id="reset-martingale-select">
+                                            <option value="off" selected>off</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                            <option value="4">4</option>
+                                            <option value="5">5</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="config-column">
+                                    <div class="column-title">Kalkulator Martingale</div>
+                                    <div class="form-group-column">
+                                        <label for="max-martingale-select">Maks Martingale</label>
+                                        <select id="max-martingale-select">
+                                            <option value="always" selected>Always Signal</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                            <option value="4">4</option>
+                                            <option value="5">5</option>
+                                            <option value="6">6</option>
+                                            <option value="7">7</option>
+                                            <option value="8">8</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group-column">
+                                        <label for="stop-loss-select">Stop Loss</label>
+                                        <select id="stop-loss-select">
+                                            <option value="off">off</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                            <option value="4" selected>4</option>
+                                            <option value="5">5</option>
+                                            <option value="6">6</option>
+                                            <option value="7">7</option>
+                                            <option value="8">8</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-grid" style="margin-top: 10px; margin-bottom: 0;">
+                                <div class="form-group-half">
+                                    <label for="take-profit-input">Hentikan profit setelah</label>
+                                    <input type="text" id="take-profit-input" value="20.000.000">
+                                </div>
+                                <div class="form-group-half">
+                                    <label for="min-balance-input">Proteksi Saldo Minimum</label>
+                                    <input type="text" id="min-balance-input" value="200.000">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="cancel-config-btn" class="btn-secondary-inline">Batal</button>
+                            <button id="save-config-btn" class="btn-primary-inline">Simpan Pengaturan</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Script imports -->
+    <script src="app.js"></script>
+</body>
+</html>
