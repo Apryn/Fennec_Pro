@@ -14,11 +14,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Java (Java 21)
+      - name: Setup Java (Java 17)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '21'
+          java-version: '17'
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -40,13 +40,12 @@ jobs:
         run: |
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "$KEYSTORE_BASE64" | base64 --decode > fennec_pro_mobile/android/app/fennec-release.jks
-            cat > fennec_pro_mobile/android/key.properties << EOF
-          storePassword=$STORE_PASSWORD
-          keyPassword=$KEY_PASSWORD
-          keyAlias=$KEY_ALIAS
-          storeFile=app/fennec-release.jks
-          EOF
+            printf "storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=app/fennec-release.jks\n" \
+              "$STORE_PASSWORD" "$KEY_PASSWORD" "$KEY_ALIAS" \
+              > fennec_pro_mobile/android/key.properties
             echo "✅ Release signing configured"
+            echo "--- key.properties preview ---"
+            cat fennec_pro_mobile/android/key.properties
           else
             echo "⚠️ No signing secrets found, using debug signing as fallback"
           fi
