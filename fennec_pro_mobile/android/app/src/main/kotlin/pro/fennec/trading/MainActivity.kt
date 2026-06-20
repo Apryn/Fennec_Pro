@@ -1,4 +1,4 @@
-package com.example.fennec_pro_mobile
+package pro.fennec.trading
 
 import io.flutter.embedding.android.FlutterActivity
 

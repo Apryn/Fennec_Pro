@@ -31,6 +31,26 @@ jobs:
           cd fennec_pro_mobile
           flutter pub get
 
+      - name: Setup Release Signing (from GitHub Secrets)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > fennec_pro_mobile/android/app/fennec-release.jks
+            cat > fennec_pro_mobile/android/key.properties << EOF
+          storePassword=$STORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=app/fennec-release.jks
+          EOF
+            echo "✅ Release signing configured"
+          else
+            echo "⚠️ No signing secrets found, using debug signing as fallback"
+          fi
+
       - name: Build Release APK
         run: |
           cd fennec_pro_mobile

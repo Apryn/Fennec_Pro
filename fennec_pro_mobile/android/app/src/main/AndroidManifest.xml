@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- INTERNET permission required for WebView to load Olymp Trade platform -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="fennec_pro_mobile"
+        android:label="FENNEC PRO"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

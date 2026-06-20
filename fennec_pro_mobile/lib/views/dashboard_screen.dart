@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../theme/cyber_theme.dart';
 import '../main.dart';
@@ -795,57 +796,59 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
         
         const Spacer(),
 
-        // Dev tools simulated win/loss triggers
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A1E28),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFF424754), style: BorderStyle.none),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'DEVELOPER MODE (SIMULATION)',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: CyberTheme.colorTextMuted, letterSpacing: 1.0),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: trading.isBotRunning ? () => trading.simulateWin() : null,
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: CyberTheme.neonGreen.withOpacity(0.3)),
-                        foregroundColor: CyberTheme.neonGreen,
-                        backgroundColor: CyberTheme.neonGreen.withOpacity(0.05),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        // Dev tools simulated win/loss triggers (DEBUG ONLY - hidden in release builds)
+        if (kDebugMode) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1E28),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF424754), style: BorderStyle.none),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'DEVELOPER MODE (SIMULATION)',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: CyberTheme.colorTextMuted, letterSpacing: 1.0),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: trading.isBotRunning ? () => trading.simulateWin() : null,
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: CyberTheme.neonGreen.withOpacity(0.3)),
+                          foregroundColor: CyberTheme.neonGreen,
+                          backgroundColor: CyberTheme.neonGreen.withOpacity(0.05),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                        ),
+                        child: const Text('Simulate WIN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                       ),
-                      child: const Text('Simulate WIN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: trading.isBotRunning ? () => trading.simulateLoss() : null,
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: CyberTheme.neonRed.withOpacity(0.3)),
-                        foregroundColor: CyberTheme.neonRed,
-                        backgroundColor: CyberTheme.neonRed.withOpacity(0.05),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: trading.isBotRunning ? () => trading.simulateLoss() : null,
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: CyberTheme.neonRed.withOpacity(0.3)),
+                          foregroundColor: CyberTheme.neonRed,
+                          backgroundColor: CyberTheme.neonRed.withOpacity(0.05),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                        ),
+                        child: const Text('Simulate LOSS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                       ),
-                      child: const Text('Simulate LOSS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ],
     );
   }

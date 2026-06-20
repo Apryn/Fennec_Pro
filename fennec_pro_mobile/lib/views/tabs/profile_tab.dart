@@ -78,8 +78,8 @@ class ProfileTab extends StatelessWidget {
                       // Profile items
                       _buildDetailRow('Trader ID Olymp Trade', authController.currentTraderId),
                       _buildBadgeRow('Status Lisensi', 'VIP FENNEC ACCESS'),
-                      _buildDetailRow('Affiliate Sub-ID', 'MY_SPECIFIC_SUB_ID', isAmber: true),
-                      _buildDetailRow('Metode Koneksi', 'API Automated Websocket'),
+                      _buildDetailRow('Versi Aplikasi', 'Fennec Pro v1.0.0'),
+                      _buildDetailRow('Metode Koneksi', 'WebView JS Bridge'),
                       
                       const SizedBox(height: 30),
                       

@@ -42,6 +42,8 @@ class _WebTabState extends State<WebTab> {
             } else if (result == 'LOSS') {
               FennecState.trading.simulateLoss();
             }
+          } else if (eventType == 'SELECTOR_ERROR') {
+            debugPrint('[Fennec] ⚠️ Button selector failed for direction: ${parts[1]}. Update selectors in web_tab.dart.');
           }
         },
       )
@@ -101,38 +103,59 @@ class _WebTabState extends State<WebTab> {
   void _injectAntiBanBridge() {
     const String bridgeScript = r"""
 (function() {
-  console.log("Fennec Pro Anti-Ban Security Bridge Loaded.");
+  if (window.__fennecBridgeLoaded) return;
+  window.__fennecBridgeLoaded = true;
+  console.log("Fennec Pro Anti-Ban Security Bridge v1.1 Loaded.");
 
-  // 1. Monitor Account Balance
+  // Helper: Try multiple selectors and return the first match
+  function queryFirst(...selectors) {
+    for (let sel of selectors) {
+      try {
+        const el = document.querySelector(sel);
+        if (el) return el;
+      } catch(e) {}
+    }
+    return null;
+  }
+
+  // 1. Monitor Account Balance with multiple selector fallbacks
   function checkBalance() {
-    const balanceElements = document.querySelectorAll('[class*="balance"], [class*="account-balance"], [data-test="balance"]');
-    for (let el of balanceElements) {
-      const text = el.textContent || "";
-      if (text.includes("Rp") || text.includes("$") || /[0-9]/.test(text)) {
-        const balanceVal = parseInt(text.replace(/[^0-9]/g, '')) || 0;
-        if (balanceVal > 0) {
-          FennecBridge.postMessage("BALANCE_UPDATE:" + balanceVal);
-          break;
-        }
+    const balanceEl = queryFirst(
+      '[data-test="balance"]',
+      '[class*="balance-value"]',
+      '[class*="account-balance"]',
+      '[class*="wallet-amount"]',
+      '.balance span',
+      '[class*="user-balance"]'
+    );
+    if (balanceEl) {
+      const text = balanceEl.textContent || "";
+      const balanceVal = parseInt(text.replace(/[^0-9]/g, '')) || 0;
+      if (balanceVal > 0) {
+        FennecBridge.postMessage("BALANCE_UPDATE:" + balanceVal);
       }
     }
   }
 
-  const balanceObserver = new MutationObserver(checkBalance);
-  balanceObserver.observe(document.body, { childList: true, subtree: true });
+  const balanceObserver = new MutationObserver(() => checkBalance());
+  balanceObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
   checkBalance();
 
-  // 2. Monitor Transaction Results (WIN/LOSS)
+  // 2. Monitor Transaction Results (WIN/LOSS) with wider keyword coverage
+  const WIN_KEYWORDS  = ["profit", "menang", "victory", "win", "won", "sukses", "berhasil"];
+  const LOSS_KEYWORDS = ["rugi", "loss", "kalah", "failed", "expire", "gagal"];
+
   const historyObserver = new MutationObserver((mutations) => {
     for (let mutation of mutations) {
       for (let node of mutation.addedNodes) {
-        if (node.nodeType === 1) {
-          const text = node.textContent || "";
-          if (text.includes("Profit") || text.includes("Menang") || text.includes("Victory") || text.includes("Win")) {
-            FennecBridge.postMessage("RESULT_DETECTED:WIN");
-          } else if (text.includes("Rugi") || text.includes("Loss") || text.includes("Kalah")) {
-            FennecBridge.postMessage("RESULT_DETECTED:LOSS");
-          }
+        if (node.nodeType !== 1) continue;
+        const text = (node.textContent || "").toLowerCase();
+        if (WIN_KEYWORDS.some(kw => text.includes(kw))) {
+          FennecBridge.postMessage("RESULT_DETECTED:WIN");
+          return;
+        } else if (LOSS_KEYWORDS.some(kw => text.includes(kw))) {
+          FennecBridge.postMessage("RESULT_DETECTED:LOSS");
+          return;
         }
       }
     }
@@ -141,49 +164,83 @@ class _WebTabState extends State<WebTab> {
 
   // 3. Humanized Event Dispatcher (Anti-Ban mouse simulation)
   window.fennecExecuteClick = function(direction, nominal) {
-    console.log("Fennec Bridge triggering: " + direction + " with size " + nominal);
+    console.log("Fennec Bridge triggering: " + direction + " | size: " + nominal);
 
-    // Enter Nominal
-    let amountInput = document.querySelector('input[data-test="deal-amount-input"], [class*="deal-amount"] input');
+    // --- Inject nominal amount ---
+    const amountInput = queryFirst(
+      'input[data-test="deal-amount-input"]',
+      '[class*="deal-amount"] input',
+      '[class*="amount-input"] input',
+      'input[class*="trade-size"]',
+      'input[class*="bet-amount"]',
+      '[data-cy="amount-input"]'
+    );
     if (amountInput) {
       amountInput.focus();
-      amountInput.value = nominal;
+      // Use native input setter to bypass React/Vue controlled components
+      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+      nativeInputValueSetter.call(amountInput, nominal);
       amountInput.dispatchEvent(new Event('input', { bubbles: true }));
+      amountInput.dispatchEvent(new Event('change', { bubbles: true }));
       amountInput.blur();
     }
 
-    // Select Button based on direction
+    // --- Find call/put button ---
     let button;
     if (direction === 'UP') {
-      button = document.querySelector('button[data-test="button-call"], [class*="button-call"], .button-up');
+      button = queryFirst(
+        'button[data-test="button-call"]',
+        '[class*="button-call"]',
+        '.button-up',
+        'button[class*="call"]',
+        '[data-cy="btn-call"]',
+        'button[class*="higher"]',
+        '.trade-button-call'
+      );
     } else {
-      button = document.querySelector('button[data-test="button-put"], [class*="button-put"], .button-down');
+      button = queryFirst(
+        'button[data-test="button-put"]',
+        '[class*="button-put"]',
+        '.button-down',
+        'button[class*="put"]',
+        '[data-cy="btn-put"]',
+        'button[class*="lower"]',
+        '.trade-button-put'
+      );
     }
 
     if (!button) {
-      console.error("Fennec could not find the call/put button selector.");
+      console.error("Fennec: Could not find " + direction + " button. Selectors may need update.");
+      FennecBridge.postMessage("SELECTOR_ERROR:" + direction);
       return;
     }
 
-    // Generate random human delay (1.5s - 3.5s) to avoid bot detection
+    // --- Human-like randomized delay (1.5s - 3.5s) ---
     const randomDelay = Math.floor(Math.random() * 2000) + 1500;
     setTimeout(() => {
       const rect = button.getBoundingClientRect();
-      const clickX = rect.left + (rect.width * (0.3 + Math.random() * 0.4));
-      const clickY = rect.top + (rect.height * (0.3 + Math.random() * 0.4));
+      // Random click point within 30%-70% of button area
+      const clickX = rect.left + (rect.width  * (0.3 + Math.random() * 0.4));
+      const clickY = rect.top  + (rect.height * (0.3 + Math.random() * 0.4));
 
-      // Trigger hover
-      button.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, clientX: clickX, clientY: clickY }));
-      button.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, clientX: clickX, clientY: clickY }));
+      const mkEvt = (type) => new MouseEvent(type, {
+        bubbles: true, cancelable: true,
+        view: window, clientX: clickX, clientY: clickY, button: 0
+      });
 
-      // Click sequence
+      // Full human mouse event sequence
+      button.dispatchEvent(mkEvt('mouseenter'));
+      button.dispatchEvent(mkEvt('mouseover'));
+
       setTimeout(() => {
-        button.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: clickX, clientY: clickY, button: 0 }));
+        button.dispatchEvent(mkEvt('mousedown'));
         button.focus();
-        button.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: clickX, clientY: clickY, button: 0 }));
-        button.click();
-        console.log("Fennec automated click injected at (" + clickX + ", " + clickY + ")");
-      }, 150);
+        setTimeout(() => {
+          button.dispatchEvent(mkEvt('mouseup'));
+          button.dispatchEvent(mkEvt('click'));
+          console.log("Fennec: Injected " + direction + " click at (" + Math.round(clickX) + ", " + Math.round(clickY) + ")");
+        }, 80 + Math.floor(Math.random() * 70));
+      }, 100 + Math.floor(Math.random() * 80));
 
     }, randomDelay);
   };
@@ -191,6 +248,7 @@ class _WebTabState extends State<WebTab> {
 """;
     _controller.runJavaScript(bridgeScript);
   }
+
 
   @override
   Widget build(BuildContext context) {

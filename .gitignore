@@ -4,3 +4,19 @@
 *.log
 .DS_Store
 Thumbs.db
+
+# Android signing - NEVER commit these to git!
+fennec_pro_mobile/android/key.properties
+fennec_pro_mobile/android/*.jks
+fennec_pro_mobile/android/*.keystore
+*.jks
+*.keystore
+
+# Flutter build outputs
+fennec_pro_mobile/build/
+fennec_pro_mobile/.dart_tool/
+fennec_pro_mobile/.flutter-plugins
+fennec_pro_mobile/.flutter-plugins-dependencies
+
+# Local Android config (machine-specific)
+fennec_pro_mobile/android/local.properties
