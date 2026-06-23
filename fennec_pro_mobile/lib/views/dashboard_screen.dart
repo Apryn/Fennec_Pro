@@ -48,6 +48,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     final multiplierController = TextEditingController(text: '${trading.martingaleMultiplierPercent}%');
     final takeProfitController = TextEditingController(text: formatter.format(trading.takeProfitLimit).trim());
     final minBalanceController = TextEditingController(text: formatter.format(trading.minimumBalanceGuard).trim());
+    final platformUrlController = TextEditingController(text: trading.platformUrl);
 
     bool localAutoDemo = trading.isAutoDemo;
     bool localAutoTrading = trading.isAutoTradingActive;
@@ -443,6 +444,25 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'URL Platform (Mirror Link)',
+                        style: TextStyle(fontSize: 9, color: CyberTheme.colorTextMuted, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: platformUrlController,
+                        keyboardType: TextInputType.url,
+                        style: const TextStyle(fontSize: 11, color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'https://olymptrade.com',
+                          hintStyle: const TextStyle(color: CyberTheme.colorTextMuted, fontSize: 11),
+                          fillColor: const Color(0xFF131722),
+                          filled: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -460,8 +480,9 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                     final multiplier = parseFormattedInt(multiplierController.text);
                     final profitHalt = parseFormattedInt(takeProfitController.text);
                     final minBalance = parseFormattedInt(minBalanceController.text);
+                    final platformUrl = platformUrlController.text.trim();
 
-                    if (base > 0 && mart > 0 && multiplier > 0 && profitHalt > 0 && minBalance >= 0) {
+                    if (base > 0 && mart > 0 && multiplier > 0 && profitHalt > 0 && minBalance >= 0 && platformUrl.isNotEmpty) {
                       trading.updateConfig(
                         base: base,
                         martingale: mart,
@@ -473,6 +494,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                         takeProfit: profitHalt,
                         autoTrading: localAutoTrading,
                         minBalance: minBalance,
+                        platformUrl: platformUrl,
                       );
                       Navigator.pop(context);
                     }

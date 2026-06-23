@@ -17,6 +17,7 @@ let resetMartingaleLevel = "off";      // off, 1, 2, 3, etc.
 let stopLossLimit = 4;                 // off, 1, 2, 3, 4, 5, etc.
 let takeProfitLimit = 20000000;        // target profit to halt
 let isDemoWallet = false;              // active demo mode state
+let platformUrl = "https://olymptrade.com"; // active platform/mirror URL
 
 // Full Automation & Anti-Ban variables
 let isAutoTradingActive = false;
@@ -73,6 +74,8 @@ const takeProfitInput = document.getElementById("take-profit-input");
 const activeBalanceValue = document.getElementById("active-balance-value");
 const autoTradeToggle = document.getElementById("auto-trade-toggle");
 const minBalanceInput = document.getElementById("min-balance-input");
+const platformUrlInput = document.getElementById("platform-url-input");
+const chartMockWebAddress = document.querySelector(".chart-mock-web-address");
 
 const profileTraderId = document.getElementById("profile-trader-id");
 const logoutBtn = document.getElementById("logout-btn");
@@ -401,6 +404,7 @@ function openConfigModal() {
     stopLossSelect.value = stopLossLimit;
     takeProfitInput.value = formatDottedInt(takeProfitLimit);
     minBalanceInput.value = formatDottedInt(minimumBalanceGuard);
+    platformUrlInput.value = platformUrl;
     configModal.classList.remove("hidden");
 }
 
@@ -414,9 +418,10 @@ function saveConfig() {
     const multiplierVal = parseFormattedInt(martingaleMultiplierInput.value);
     const takeProfitVal = parseFormattedInt(takeProfitInput.value);
     const minBalanceVal = parseFormattedInt(minBalanceInput.value);
+    const urlVal = platformUrlInput.value.trim();
 
-    if (baseVal <= 0 || martVal <= 0 || multiplierVal <= 0 || takeProfitVal <= 0 || minBalanceVal < 0) {
-        alert("Semua nominal input harus valid dan lebih besar dari atau sama dengan 0");
+    if (baseVal <= 0 || martVal <= 0 || multiplierVal <= 0 || takeProfitVal <= 0 || minBalanceVal < 0 || !urlVal) {
+        alert("Semua nominal input harus valid, dan URL platform tidak boleh kosong.");
         return;
     }
 
@@ -430,6 +435,12 @@ function saveConfig() {
     stopLossLimit = stopLossSelect.value === "off" ? "off" : parseInt(stopLossSelect.value);
     takeProfitLimit = takeProfitVal;
     minimumBalanceGuard = minBalanceVal;
+    platformUrl = urlVal;
+
+    // Update the mock web address bar at the bottom of the chart
+    if (chartMockWebAddress) {
+        chartMockWebAddress.innerHTML = `<span class="lock-icon">🔒</span> ${platformUrl}/platform`;
+    }
 
     // Recalculate next trade based on current state
     if (isMartingaleActive) {

@@ -15,6 +15,7 @@ class _WebTabState extends State<WebTab> {
   bool _isLoading = true;
   double _loadingProgress = 0.0;
   int _lastExecutedSignalId = 0;
+  String _loadedPlatformUrl = '';
 
   @override
   void initState() {
@@ -23,9 +24,12 @@ class _WebTabState extends State<WebTab> {
     // Add listener to trading state for signal execution
     FennecState.trading.addListener(_onTradingStateChanged);
 
+    _loadedPlatformUrl = FennecState.trading.platformUrl;
+
     // Initialize WebViewController to load Olymp Trade Platform
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setUserAgent("Mozilla/5.0 (Linux; Android 13; SM-A205F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.3472.0 Mobile Safari/537.36")
       ..setBackgroundColor(CyberTheme.background)
       ..addJavaScriptChannel(
         'FennecBridge',
@@ -77,7 +81,7 @@ class _WebTabState extends State<WebTab> {
           },
         ),
       )
-      ..loadRequest(Uri.parse('https://olymptrade.com/platform'));
+      ..loadRequest(Uri.parse('$_loadedPlatformUrl/platform'));
   }
 
   @override
@@ -88,6 +92,17 @@ class _WebTabState extends State<WebTab> {
 
   void _onTradingStateChanged() {
     final trading = FennecState.trading;
+    
+    // Check if the platform URL changed
+    final currentConfigUrl = trading.platformUrl;
+    if (_loadedPlatformUrl != currentConfigUrl) {
+      _loadedPlatformUrl = currentConfigUrl;
+      _controller.loadRequest(Uri.parse('$currentConfigUrl/platform'));
+      if (mounted) {
+        setState(() {});
+      }
+    }
+
     if (trading.isAutoTradingActive && trading.signalId > _lastExecutedSignalId) {
       _lastExecutedSignalId = trading.signalId;
       _executeAutoTrade(trading.lastSignalDirection ?? "UP", trading.nextTrade);
@@ -292,15 +307,15 @@ class _WebTabState extends State<WebTab> {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: CyberTheme.borderDark, width: 1.0),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.lock, size: 12, color: CyberTheme.neonGreen),
-              SizedBox(width: 8),
+              const Icon(Icons.lock, size: 12, color: CyberTheme.neonGreen),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'https://olymptrade.com/platform',
+                  '${FennecState.trading.platformUrl}/platform',
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, color: CyberTheme.colorTextSecondary, fontWeight: FontWeight.w500),
+                  style: const TextStyle(fontSize: 11, color: CyberTheme.colorTextSecondary, fontWeight: FontWeight.w500),
                 ),
               ),
             ],

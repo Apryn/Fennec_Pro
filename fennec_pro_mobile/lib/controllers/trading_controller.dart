@@ -22,6 +22,7 @@ class TradingController extends ChangeNotifier {
   String _stopLossLimit = "4";
   int _takeProfitLimit = 20000000;
   bool _isDemoWallet = false;
+  String _platformUrl = 'https://olymptrade.com';
   
   // Full Automation & Anti-Ban Security fields
   bool _isAutoTradingActive = false;
@@ -70,6 +71,7 @@ class TradingController extends ChangeNotifier {
   int get currentAccountBalance => _currentAccountBalance;
   String? get lastSignalDirection => _lastSignalDirection;
   int get signalId => _signalId;
+  String get platformUrl => _platformUrl;
 
   Color get activeAccentColor {
     switch (_activeThemeColor) {
@@ -144,6 +146,7 @@ class TradingController extends ChangeNotifier {
     required int takeProfit,
     required bool autoTrading,
     required int minBalance,
+    required String platformUrl,
   }) {
     _baseTrade = base;
     _martingaleTrade = martingale;
@@ -155,6 +158,7 @@ class TradingController extends ChangeNotifier {
     _takeProfitLimit = takeProfit;
     _isAutoTradingActive = autoTrading;
     _minimumBalanceGuard = minBalance;
+    _platformUrl = platformUrl;
     
     // Recalculate next trade sizing
     _nextTrade = _isMartingaleActive ? _martingaleTrade : _baseTrade;
