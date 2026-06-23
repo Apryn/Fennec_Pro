@@ -63,7 +63,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
 
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.75),
+      barrierColor: Colors.black.withValues(alpha: 0.75),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
@@ -91,7 +91,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                         const SizedBox(height: 2),
                         Text(
                           'Simpan pengaturan sebelum menjalankan bot',
-                          style: TextStyle(fontSize: 9, color: CyberTheme.colorTextMuted.withOpacity(0.85), fontWeight: FontWeight.normal),
+                          style: TextStyle(fontSize: 9, color: CyberTheme.colorTextMuted.withValues(alpha: 0.85), fontWeight: FontWeight.normal),
                         ),
                       ],
                     ),
@@ -124,14 +124,14 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                                 const SizedBox(height: 2),
                                 Text(
                                   'Pindah ke demo saat loss sesuai stop loss, kembali saat menang',
-                                  style: TextStyle(fontSize: 7.5, color: CyberTheme.colorTextMuted.withOpacity(0.8)),
+                                  style: TextStyle(fontSize: 7.5, color: CyberTheme.colorTextMuted.withValues(alpha: 0.8)),
                                 ),
                               ],
                             ),
                           ),
                           Switch(
                             value: localAutoDemo,
-                            activeColor: CyberTheme.neonYellow,
+                            activeThumbColor: CyberTheme.neonYellow,
                             onChanged: (val) {
                               setDialogState(() {
                                 localAutoDemo = val;
@@ -157,14 +157,14 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                                 const SizedBox(height: 2),
                                 Text(
                                   'Klik otomatis UP/DOWN langsung di market dengan sistem jeda acak anti-ban',
-                                  style: TextStyle(fontSize: 7.5, color: CyberTheme.colorTextMuted.withOpacity(0.8)),
+                                  style: TextStyle(fontSize: 7.5, color: CyberTheme.colorTextMuted.withValues(alpha: 0.8)),
                                 ),
                               ],
                             ),
                           ),
                           Switch(
                             value: localAutoTrading,
-                            activeColor: CyberTheme.neonYellow,
+                            activeThumbColor: CyberTheme.neonYellow,
                             onChanged: (val) {
                               setDialogState(() {
                                 localAutoTrading = val;
@@ -179,8 +179,8 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.015),
-                          border: Border.all(color: Colors.white.withOpacity(0.05)),
+                          color: Colors.white.withValues(alpha: 0.015),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
@@ -284,7 +284,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                                 const Text('Reset Martingale', style: TextStyle(fontSize: 9, color: CyberTheme.colorTextMuted, fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 4),
                                 DropdownButtonFormField<String>(
-                                  value: localResetMart,
+                                  initialValue: localResetMart,
                                   dropdownColor: CyberTheme.cardBg,
                                   style: const TextStyle(fontSize: 11, color: Colors.white),
                                   decoration: InputDecoration(
@@ -328,7 +328,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                                 const Text('Maks Martingale', style: TextStyle(fontSize: 9, color: CyberTheme.colorTextMuted, fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 4),
                                 DropdownButtonFormField<String>(
-                                  value: localMaxMart,
+                                  initialValue: localMaxMart,
                                   dropdownColor: CyberTheme.cardBg,
                                   style: const TextStyle(fontSize: 11, color: Colors.white),
                                   decoration: InputDecoration(
@@ -356,7 +356,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                                 const Text('Stop Loss', style: TextStyle(fontSize: 9, color: CyberTheme.colorTextMuted, fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 4),
                                 DropdownButtonFormField<String>(
-                                  value: localStopLoss,
+                                  initialValue: localStopLoss,
                                   dropdownColor: CyberTheme.cardBg,
                                   style: const TextStyle(fontSize: 11, color: Colors.white),
                                   decoration: InputDecoration(
@@ -706,12 +706,12 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(4),
                       border: Border.all(
                         color: trading.isMartingaleActive
-                            ? CyberTheme.neonYellow.withOpacity(0.3)
-                            : trading.activeAccentColor.withOpacity(0.3),
+                            ? CyberTheme.neonYellow.withValues(alpha: 0.3)
+                            : trading.activeAccentColor.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Text(
@@ -842,9 +842,9 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                       child: OutlinedButton(
                         onPressed: trading.isBotRunning ? () => trading.simulateWin() : null,
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: CyberTheme.neonGreen.withOpacity(0.3)),
+                          side: BorderSide(color: CyberTheme.neonGreen.withValues(alpha: 0.3)),
                           foregroundColor: CyberTheme.neonGreen,
-                          backgroundColor: CyberTheme.neonGreen.withOpacity(0.05),
+                          backgroundColor: CyberTheme.neonGreen.withValues(alpha: 0.05),
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                         ),
@@ -856,9 +856,9 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                       child: OutlinedButton(
                         onPressed: trading.isBotRunning ? () => trading.simulateLoss() : null,
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: CyberTheme.neonRed.withOpacity(0.3)),
+                          side: BorderSide(color: CyberTheme.neonRed.withValues(alpha: 0.3)),
                           foregroundColor: CyberTheme.neonRed,
-                          backgroundColor: CyberTheme.neonRed.withOpacity(0.05),
+                          backgroundColor: CyberTheme.neonRed.withValues(alpha: 0.05),
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                         ),
@@ -923,7 +923,7 @@ class StatusDot extends StatelessWidget {
         boxShadow: glow
             ? [
                 BoxShadow(
-                  color: color.withOpacity(0.8),
+                  color: color.withValues(alpha: 0.8),
                   blurRadius: 6,
                   spreadRadius: 1,
                 )
@@ -985,22 +985,22 @@ class HeaderLogoPainter extends CustomPainter {
 // Helper extension on Row to add space between children easily
 extension RowSpacing on Row {
   Row get gap => Row(
-        mainAxisAlignment: this.mainAxisAlignment,
-        mainAxisSize: this.mainAxisSize,
-        crossAxisAlignment: this.crossAxisAlignment,
-        textDirection: this.textDirection,
-        verticalDirection: this.verticalDirection,
-        textBaseline: this.textBaseline,
-        children: this.children.isNotEmpty
-            ? (this.children
-                .expand((child) => [child, SizedBox(width: this.gapWidth)])
+        mainAxisAlignment: mainAxisAlignment,
+        mainAxisSize: mainAxisSize,
+        crossAxisAlignment: crossAxisAlignment,
+        textDirection: textDirection,
+        verticalDirection: verticalDirection,
+        textBaseline: textBaseline,
+        children: children.isNotEmpty
+            ? (children
+                .expand((child) => [child, SizedBox(width: gapWidth)])
                 .toList()
                 ..removeLast())
             : [],
       );
 
   double get gapWidth {
-    if (this.children.isNotEmpty) {
+    if (children.isNotEmpty) {
       // Find spacing sizing from raw argument or use default
       return 12.0; // fallback default
     }

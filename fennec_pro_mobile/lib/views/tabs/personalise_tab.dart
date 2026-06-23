@@ -135,7 +135,7 @@ class PersonaliseTab extends StatelessWidget {
                         style: TextStyle(fontSize: 11, color: CyberTheme.colorTextMuted, height: 1.4),
                       ),
                       value: tradingController.highContrastMode,
-                      activeColor: tradingController.activeAccentColor,
+                      activeThumbColor: tradingController.activeAccentColor,
                       contentPadding: EdgeInsets.zero,
                       onChanged: (val) {
                         tradingController.setHighContrast(val);

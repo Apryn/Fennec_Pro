@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/cyber_theme.dart';
 import '../../main.dart';
-import '../../controllers/trading_controller.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
@@ -55,7 +54,7 @@ class ProfileTab extends StatelessWidget {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: color.withOpacity(0.4),
+                                  color: color.withValues(alpha: 0.4),
                                   blurRadius: 15,
                                   spreadRadius: 2,
                                 )
@@ -90,7 +89,7 @@ class ProfileTab extends StatelessWidget {
                           authController.deactivate();
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: CyberTheme.neonRed.withOpacity(0.1),
+                          backgroundColor: CyberTheme.neonRed.withValues(alpha: 0.1),
                           foregroundColor: CyberTheme.neonRed,
                           side: const BorderSide(color: CyberTheme.neonRed, width: 1.0),
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -149,9 +148,9 @@ class ProfileTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: CyberTheme.neonGreen.withOpacity(0.15),
+              color: CyberTheme.neonGreen.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: CyberTheme.neonGreen.withOpacity(0.3), width: 1),
+              border: Border.all(color: CyberTheme.neonGreen.withValues(alpha: 0.3), width: 1),
             ),
             child: Text(
               badgeText,

@@ -23,7 +23,9 @@ class CyberTheme {
       scaffoldBackgroundColor: background,
       primaryColor: neonGreen,
       cardColor: cardBg,
-      dialogBackgroundColor: cardBg,
+      dialogTheme: const DialogThemeData(
+        backgroundColor: cardBg,
+      ),
       textTheme: ThemeData.dark().textTheme.apply(
         fontFamily: GoogleFonts.inter().fontFamily,
       ),
@@ -52,7 +54,7 @@ class CyberTheme {
       boxShadow: showGlow
           ? [
               BoxShadow(
-                color: accentColor.withOpacity(0.35),
+                color: accentColor.withValues(alpha: 0.35),
                 blurRadius: glowRadius,
                 spreadRadius: 1,
               )

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -89,7 +88,7 @@ class TradingController extends ChangeNotifier {
   }
 
   Color get activeAccentGlow {
-    return activeAccentColor.withOpacity(0.35);
+    return activeAccentColor.withValues(alpha: 0.35);
   }
 
   TradingController() {

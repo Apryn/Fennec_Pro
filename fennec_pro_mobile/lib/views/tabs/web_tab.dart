@@ -286,7 +286,7 @@ class _WebTabState extends State<WebTab> {
                 ),
               ),
               if (_isLoading)
-                SizedBox(
+                const SizedBox(
                   width: 14,
                   height: 14,
                   child: CircularProgressIndicator(

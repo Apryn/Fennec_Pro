@@ -72,7 +72,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         color: CyberTheme.neonGreen,
                         shadows: [
                           Shadow(
-                            color: CyberTheme.neonGreen.withOpacity(0.5),
+                            color: CyberTheme.neonGreen.withValues(alpha: 0.5),
                             blurRadius: 10,
                           ),
                         ],
@@ -141,7 +141,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       Container(
                         padding: const EdgeInsets.all(12.0),
                         decoration: BoxDecoration(
-                          color: CyberTheme.neonRed.withOpacity(0.15),
+                          color: CyberTheme.neonRed.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: CyberTheme.neonRed, width: 1),
                         ),
@@ -168,7 +168,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         elevation: 5,
-                        shadowColor: CyberTheme.neonGreen.withOpacity(0.4),
+                        shadowColor: CyberTheme.neonGreen.withValues(alpha: 0.4),
                       ),
                       child: const Text(
                         'AKTIVASI SEKARANG',
@@ -222,7 +222,7 @@ class FennecLogoPainter extends CustomPainter {
       ..close();
     
     final Gradient earGradLeft = LinearGradient(
-      colors: [CyberTheme.neonYellow, CyberTheme.background.withOpacity(0.1)],
+      colors: [CyberTheme.neonYellow, CyberTheme.background.withValues(alpha: 0.1)],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
@@ -239,7 +239,7 @@ class FennecLogoPainter extends CustomPainter {
       ..close();
     
     final Gradient earGradRight = LinearGradient(
-      colors: [CyberTheme.neonYellow, CyberTheme.background.withOpacity(0.1)],
+      colors: [CyberTheme.neonYellow, CyberTheme.background.withValues(alpha: 0.1)],
       begin: Alignment.topRight,
       end: Alignment.bottomLeft,
     );
@@ -252,7 +252,7 @@ class FennecLogoPainter extends CustomPainter {
     paint.shader = null;
 
     // 3. Draw Inner Ears Accent (Semi-transparent Electric Red)
-    paint.color = CyberTheme.neonRed.withOpacity(0.6);
+    paint.color = CyberTheme.neonRed.withValues(alpha: 0.6);
     final Path innerEarLeft = Path()
       ..moveTo(w * 0.48, h * 0.45)
       ..lineTo(w * 0.25, h * 0.24)

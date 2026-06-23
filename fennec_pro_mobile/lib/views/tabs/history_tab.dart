@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/cyber_theme.dart';
 import '../../main.dart';
-import '../../controllers/trading_controller.dart';
 import 'package:intl/intl.dart';
 
 class HistoryTab extends StatelessWidget {
@@ -58,8 +57,8 @@ class HistoryTab extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                               color: isWin
-                                  ? CyberTheme.neonGreen.withOpacity(0.3)
-                                  : CyberTheme.neonRed.withOpacity(0.3),
+                                  ? CyberTheme.neonGreen.withValues(alpha: 0.3)
+                                  : CyberTheme.neonRed.withValues(alpha: 0.3),
                               width: 1.0,
                             ),
                           ),
