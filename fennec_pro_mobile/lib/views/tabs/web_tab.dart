@@ -38,7 +38,12 @@ class _WebTabState extends State<WebTab> {
           final eventType = parts[0];
           if (eventType == 'BALANCE_UPDATE') {
             final balance = int.tryParse(parts[1]) ?? 0;
-            FennecState.trading.updateAccountBalance(balance);
+            final isDemo = parts.length > 2 && parts[2] == 'DEMO';
+            FennecState.trading.updateAccountBalance(balance, isDemo: isDemo);
+          } else if (eventType == 'PRICE_TICK') {
+            // Feed real market price into the smart signal engine
+            final price = double.tryParse(parts[1]) ?? 0.0;
+            if (price > 0) FennecState.trading.onPriceTick(price);
           } else if (eventType == 'RESULT_DETECTED') {
             final result = parts[1];
             if (result == 'WIN') {
@@ -93,6 +98,9 @@ class _WebTabState extends State<WebTab> {
   void _onTradingStateChanged() {
     final trading = FennecState.trading;
     
+    // Inject the bridge to ensure it remains active
+    _injectAntiBanBridge();
+
     // Check if the platform URL changed
     final currentConfigUrl = trading.platformUrl;
     if (_loadedPlatformUrl != currentConfigUrl) {
@@ -110,9 +118,14 @@ class _WebTabState extends State<WebTab> {
   }
 
   void _executeAutoTrade(String direction, int nominal) {
-    _controller.runJavaScript(
-      'if (window.fennecExecuteClick) { window.fennecExecuteClick("$direction", $nominal); }'
-    );
+    _injectAntiBanBridge();
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _controller.runJavaScript(
+          'if (window.fennecExecuteClick) { window.fennecExecuteClick("$direction", $nominal); }'
+        );
+      }
+    });
   }
 
   void _injectAntiBanBridge() {
@@ -120,7 +133,7 @@ class _WebTabState extends State<WebTab> {
 (function() {
   if (window.__fennecBridgeLoaded) return;
   window.__fennecBridgeLoaded = true;
-  console.log("Fennec Pro Anti-Ban Security Bridge v1.1 Loaded.");
+  console.log("Fennec Pro Smart Signal Bridge v2.0 Loaded.");
 
   // Helper: Try multiple selectors and return the first match
   function queryFirst(...selectors) {
@@ -145,9 +158,14 @@ class _WebTabState extends State<WebTab> {
     );
     if (balanceEl) {
       const text = balanceEl.textContent || "";
-      const balanceVal = parseInt(text.replace(/[^0-9]/g, '')) || 0;
+      let cleanText = text.replace(/[^0-9.,]/g, '');
+      if (cleanText.match(/[.,]\d{2}$/)) {
+        cleanText = cleanText.substring(0, cleanText.length - 3);
+      }
+      const balanceVal = parseInt(cleanText.replace(/[^0-9]/g, '')) || 0;
+      const isDemo = text.toUpperCase().includes('D') || text.toLowerCase().includes('demo');
       if (balanceVal > 0) {
-        FennecBridge.postMessage("BALANCE_UPDATE:" + balanceVal);
+        FennecBridge.postMessage("BALANCE_UPDATE:" + balanceVal + ":" + (isDemo ? "DEMO" : "REAL"));
       }
     }
   }
@@ -156,7 +174,38 @@ class _WebTabState extends State<WebTab> {
   balanceObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
   checkBalance();
 
-  // 2. Monitor Transaction Results (WIN/LOSS) with wider keyword coverage
+  // 2. ─── SMART SIGNAL: Live Price Tick Scraper ────────────────────────
+  // Tries to extract the current market price from Olymp Trade's chart.
+  // Multiple selectors tried for resilience across platform versions.
+  let _lastSentPrice = 0;
+  function scrapePriceTick() {
+    const priceEl = queryFirst(
+      '[data-test="current-price"]',
+      '[class*="current-price"]',
+      '[class*="trade-price"]',
+      '[class*="chart-price"]',
+      '[class*="asset-price"]',
+      '[class*="price-value"]',
+      '.strike-price',
+      '[class*="strikePrice"]',
+      '[data-test="price"]',
+      '.price'
+    );
+    if (priceEl) {
+      const rawText = priceEl.textContent || "";
+      const cleaned = rawText.replace(/[^0-9.]/g, '');
+      const price = parseFloat(cleaned);
+      if (price > 0 && price !== _lastSentPrice) {
+        _lastSentPrice = price;
+        FennecBridge.postMessage("PRICE_TICK:" + price.toFixed(6));
+      }
+    }
+  }
+  // Fire price scraper every 3 seconds
+  setInterval(scrapePriceTick, 3000);
+  scrapePriceTick();
+
+  // 3. Monitor Transaction Results (WIN/LOSS) with wider keyword coverage
   const WIN_KEYWORDS  = ["profit", "menang", "victory", "win", "won", "sukses", "berhasil"];
   const LOSS_KEYWORDS = ["rugi", "loss", "kalah", "failed", "expire", "gagal"];
 
@@ -177,22 +226,24 @@ class _WebTabState extends State<WebTab> {
   });
   historyObserver.observe(document.body, { childList: true, subtree: true });
 
-  // 3. Humanized Event Dispatcher (Anti-Ban mouse simulation)
+  // 4. Humanized Event Dispatcher (Anti-Ban mouse simulation)
   window.fennecExecuteClick = function(direction, nominal) {
     console.log("Fennec Bridge triggering: " + direction + " | size: " + nominal);
 
     // --- Inject nominal amount ---
     const amountInput = queryFirst(
+      '[data-test="deal-amount-input"]',
       'input[data-test="deal-amount-input"]',
+      '[data-test="amount-input"]',
       '[class*="deal-amount"] input',
       '[class*="amount-input"] input',
+      'input[class*="amount"]',
       'input[class*="trade-size"]',
       'input[class*="bet-amount"]',
       '[data-cy="amount-input"]'
     );
     if (amountInput) {
       amountInput.focus();
-      // Use native input setter to bypass React/Vue controlled components
       const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
       nativeInputValueSetter.call(amountInput, nominal);
       amountInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -204,20 +255,26 @@ class _WebTabState extends State<WebTab> {
     let button;
     if (direction === 'UP') {
       button = queryFirst(
+        '[data-test="deal-up-button"]',
         'button[data-test="button-call"]',
-        '[class*="button-call"]',
-        '.button-up',
+        '[class*="deal-button_up"]',
+        '[class*="deal-button-up"]',
+        'button[class*="button-call"]',
         'button[class*="call"]',
+        '.button-up',
         '[data-cy="btn-call"]',
         'button[class*="higher"]',
         '.trade-button-call'
       );
     } else {
       button = queryFirst(
+        '[data-test="deal-down-button"]',
         'button[data-test="button-put"]',
-        '[class*="button-put"]',
-        '.button-down',
+        '[class*="deal-button_down"]',
+        '[class*="deal-button-down"]',
+        'button[class*="button-put"]',
         'button[class*="put"]',
+        '.button-down',
         '[data-cy="btn-put"]',
         'button[class*="lower"]',
         '.trade-button-put'
@@ -234,7 +291,6 @@ class _WebTabState extends State<WebTab> {
     const randomDelay = Math.floor(Math.random() * 2000) + 1500;
     setTimeout(() => {
       const rect = button.getBoundingClientRect();
-      // Random click point within 30%-70% of button area
       const clickX = rect.left + (rect.width  * (0.3 + Math.random() * 0.4));
       const clickY = rect.top  + (rect.height * (0.3 + Math.random() * 0.4));
 
@@ -243,7 +299,6 @@ class _WebTabState extends State<WebTab> {
         view: window, clientX: clickX, clientY: clickY, button: 0
       });
 
-      // Full human mouse event sequence
       button.dispatchEvent(mkEvt('mouseenter'));
       button.dispatchEvent(mkEvt('mouseover'));
 
@@ -263,7 +318,6 @@ class _WebTabState extends State<WebTab> {
 """;
     _controller.runJavaScript(bridgeScript);
   }
-
 
   @override
   Widget build(BuildContext context) {

@@ -21,3 +21,7 @@ fennec_pro_mobile/.flutter-plugins-dependencies
 
 # Local Android config (machine-specific)
 fennec_pro_mobile/android/local.properties
+
+# Temporary files / Heap dumps / Logs
+*.hprof
+job_log.txt

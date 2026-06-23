@@ -55,6 +55,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     String localMaxMart = trading.maxMartingaleLevels;
     String localResetMart = trading.resetMartingaleLevel;
     String localStopLoss = trading.stopLossLimit;
+    int localTradeDuration = trading.tradeDurationSeconds;
 
     int parseFormattedInt(String input) {
       final clean = input.replaceAll(RegExp(r'[^0-9]'), '');
@@ -463,6 +464,37 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Durasi Transaksi (Timeframe)',
+                        style: TextStyle(fontSize: 9, color: CyberTheme.colorTextMuted, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      DropdownButtonFormField<int>(
+                        value: localTradeDuration,
+                        dropdownColor: CyberTheme.cardBg,
+                        style: const TextStyle(fontSize: 11, color: Colors.white),
+                        decoration: InputDecoration(
+                          fillColor: const Color(0xFF131722),
+                          filled: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
+                        ),
+                        items: const [
+                          DropdownMenuItem<int>(value: 15, child: Text('15 Detik')),
+                          DropdownMenuItem<int>(value: 30, child: Text('30 Detik')),
+                          DropdownMenuItem<int>(value: 60, child: Text('1 Menit')),
+                          DropdownMenuItem<int>(value: 120, child: Text('2 Menit')),
+                          DropdownMenuItem<int>(value: 300, child: Text('5 Menit')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            setDialogState(() {
+                              localTradeDuration = val;
+                            });
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -495,6 +527,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                         autoTrading: localAutoTrading,
                         minBalance: minBalance,
                         platformUrl: platformUrl,
+                        tradeDuration: localTradeDuration,
                       );
                       Navigator.pop(context);
                     }
@@ -696,6 +729,26 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
               const SizedBox(height: 12),
               const Divider(color: CyberTheme.borderDark, height: 1),
               const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Saldo Aktif:',
+                    style: TextStyle(fontSize: 11, color: CyberTheme.colorTextSecondary),
+                  ),
+                  Text(
+                    trading.isDemoWallet
+                        ? 'D ${formatter.format(trading.currentAccountBalance).trim()}'
+                        : 'Rp ${formatter.format(trading.currentAccountBalance).trim()}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: trading.isDemoWallet ? CyberTheme.neonYellow : CyberTheme.neonGreen,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

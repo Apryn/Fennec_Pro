@@ -1,11 +1,11 @@
 // Application State Management
 let isActivated = false;
 let currentTraderId = "";
-let profitVal = 16659003;
+let profitVal = 0;
 let baseTradeVal = 14000;
 let martingaleTradeVal = 17000;
 let nextTradeVal = 14000;
-let isBotActive = true;
+let isBotActive = false;
 let isMartingaleActive = false;
 let consecutiveLossesCount = 0;
 
@@ -22,7 +22,7 @@ let platformUrl = "https://olymptrade.com"; // active platform/mirror URL
 // Full Automation & Anti-Ban variables
 let isAutoTradingActive = false;
 let minimumBalanceGuard = 200000;
-let currentAccountBalance = 10000000;
+let currentAccountBalance = 0;
 
 // Time Keeping Variables
 let clockInterval = null;
@@ -75,7 +75,7 @@ const activeBalanceValue = document.getElementById("active-balance-value");
 const autoTradeToggle = document.getElementById("auto-trade-toggle");
 const minBalanceInput = document.getElementById("min-balance-input");
 const platformUrlInput = document.getElementById("platform-url-input");
-const chartMockWebAddress = document.querySelector(".chart-mock-web-address");
+
 
 const profileTraderId = document.getElementById("profile-trader-id");
 const logoutBtn = document.getElementById("logout-btn");
@@ -110,8 +110,8 @@ function startAutoSignalGenerator() {
                 // Deduct trade amount from active balance
                 currentAccountBalance -= nextTradeVal;
                 
-                // Check Balance Guard Proteksi Saldo Minimum
-                if (currentAccountBalance < minimumBalanceGuard) {
+                // Check Balance Guard Proteksi Saldo Minimum (only for Real Wallet)
+                if (!isDemoWallet && currentAccountBalance < minimumBalanceGuard) {
                     isBotActive = false;
                     isAutoTradingActive = false;
                     statusBannerText.textContent = `Status: FORCE STOP! Saldo (Rp ${formatCurrency(currentAccountBalance)}) di bawah batas proteksi (Rp ${formatCurrency(minimumBalanceGuard)}).`;
@@ -329,7 +329,7 @@ function handleActivation() {
         
         // Reset stopwatch
         elapsedSeconds = 0;
-        isBotActive = true;
+        isBotActive = false;
         updateDashboardUI();
     }
     else {
@@ -436,11 +436,6 @@ function saveConfig() {
     takeProfitLimit = takeProfitVal;
     minimumBalanceGuard = minBalanceVal;
     platformUrl = urlVal;
-
-    // Update the mock web address bar at the bottom of the chart
-    if (chartMockWebAddress) {
-        chartMockWebAddress.innerHTML = `<span class="lock-icon">🔒</span> ${platformUrl}/platform`;
-    }
 
     // Recalculate next trade based on current state
     if (isMartingaleActive) {
@@ -710,6 +705,8 @@ function animateMockChart() {
     const chartLine = document.getElementById("live-chart-line");
     const pulsingDot = document.querySelector(".pulsing-chart-dot");
     const chartPrice = document.querySelector(".chart-price");
+    
+    if (!chartLine || !pulsingDot || !chartPrice) return;
     
     let chartPoints = [130, 110, 120, 70, 90, 50, 40];
     let priceMultiplier = 1.054402100;

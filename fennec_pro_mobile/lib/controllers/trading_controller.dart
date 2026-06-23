@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../services/background_service.dart';
 
 class TradingController extends ChangeNotifier {
-  int _profit = 16659003;
+  int _profit = 0;
   int _baseTrade = 14000;
   int _martingaleTrade = 17000;
   int _nextTrade = 14000;
   
-  bool _isBotRunning = true;
+  bool _isBotRunning = false;
   bool _isMartingaleActive = false;
   int _elapsedSeconds = 0;
   int _consecutiveLosses = 0;
@@ -26,9 +27,32 @@ class TradingController extends ChangeNotifier {
   // Full Automation & Anti-Ban Security fields
   bool _isAutoTradingActive = false;
   int _minimumBalanceGuard = 200000;
-  int _currentAccountBalance = 10000000;
+  int _currentAccountBalance = 0;
   String? _lastSignalDirection;
   int _signalId = 0;
+
+  bool _isTradePending = false;
+  int _startBalanceOfTrade = 0;
+  int _pendingTradeSize = 0;
+  int _pendingTradeSecondsActive = 0;
+  int _secondsSinceLastSignal = 0;
+  int _tradeDurationSeconds = 60;
+
+  // ── Smart Signal Engine ──────────────────────────────────────────────
+  // Rolling buffer of recent scraped prices (up to 30 ticks)
+  final List<double> _priceBuffer = [];
+  static const int _kBufferSize = 30;
+  // Last computed indicators (for UI display)
+  double _lastRsi = 50.0;
+  double _lastEmaFast = 0;
+  double _lastEmaSlow = 0;
+  String _lastSignalReason = '';
+  // How many consecutive candles were skipped (no signal found)
+  int _skippedCandles = 0;
+
+  // Getters for UI
+  double get lastRsi => _lastRsi;
+  String get lastSignalReason => _lastSignalReason;
   
   Timer? _clockTimer;
   Timer? _stopwatchTimer;
@@ -71,6 +95,7 @@ class TradingController extends ChangeNotifier {
   String? get lastSignalDirection => _lastSignalDirection;
   int get signalId => _signalId;
   String get platformUrl => _platformUrl;
+  int get tradeDurationSeconds => _tradeDurationSeconds;
 
   Color get activeAccentColor {
     switch (_activeThemeColor) {
@@ -89,6 +114,163 @@ class TradingController extends ChangeNotifier {
 
   Color get activeAccentGlow {
     return activeAccentColor.withValues(alpha: 0.35);
+  }
+
+  // ── Smart Signal Engine ──────────────────────────────────────────────
+  double _computeEma(List<double> prices, int period) {
+    if (prices.length < period) {
+      return prices.isEmpty ? 0 : prices.last;
+    }
+    final k = 2.0 / (period + 1);
+    double ema = prices.sublist(prices.length - period).reduce((a, b) => a + b) / period;
+    return ema; // simplified single-pass EMA for the period's last window
+  }
+
+  double _computeRsi(List<double> prices, {int period = 14}) {
+    if (prices.length < period + 1) return 50.0;
+    double gains = 0, losses = 0;
+    final recent = prices.sublist(prices.length - period - 1);
+    for (int i = 1; i < recent.length; i++) {
+      final change = recent[i] - recent[i - 1];
+      if (change > 0) {
+        gains += change;
+      } else {
+        losses += change.abs();
+      }
+    }
+    if (losses == 0) return 100.0;
+    if (gains == 0) return 0.0;
+    final rs = gains / losses;
+    return 100.0 - (100.0 / (1.0 + rs));
+  }
+
+  /// Called by the WebView bridge when a new price tick is received
+  void onPriceTick(double price) {
+    _priceBuffer.add(price);
+    if (_priceBuffer.length > _kBufferSize) {
+      _priceBuffer.removeAt(0);
+    }
+  }
+
+  /// Tiered Smart Signal System:
+  /// Grade A: 2+ indicators agree  → HIGH confidence, always fire
+  /// Grade B: 1 indicator present  → MEDIUM confidence, fire normally
+  /// Grade C: momentum only (last tick direction) → LOW confidence, fire
+  /// Emergency: forced direction based on RSI trend → always returns a signal
+  String _computeSmartSignal({bool forceEmergency = false}) {
+    // Emergency fallback: not enough data or force flag
+    if (_priceBuffer.length < 5 || forceEmergency) {
+      // Use simple RSI-like proxy: compare latest vs earliest in buffer
+      if (_priceBuffer.length >= 2) {
+        final trend = _priceBuffer.last > _priceBuffer.first ? 'DOWN' : 'UP';
+        _lastSignalReason = '⚡ Quick-trend fallback (${_priceBuffer.length} ticks)';
+        return trend;
+      }
+      // Absolute last resort: alternating direction based on minute parity
+      final dir = (DateTime.now().minute % 2 == 0) ? 'UP' : 'DOWN';
+      _lastSignalReason = '⚡ Timed fallback (no price data yet)';
+      return dir;
+    }
+
+    final rsi = _computeRsi(_priceBuffer);
+    final emaFast = _computeEma(_priceBuffer, 5);
+    final emaSlow = _computeEma(_priceBuffer, 13);
+
+    _lastRsi = rsi;
+    _lastEmaFast = emaFast;
+    _lastEmaSlow = emaSlow;
+
+    int upVotes = 0;
+    int downVotes = 0;
+    final List<String> reasons = [];
+
+    // Indicator 1: RSI (extreme zones only for reliability)
+    if (rsi < 35) {
+      upVotes++;
+      reasons.add('RSI${rsi.toStringAsFixed(0)}↑');
+    } else if (rsi > 65) {
+      downVotes++;
+      reasons.add('RSI${rsi.toStringAsFixed(0)}↓');
+    }
+
+    // Indicator 2: EMA crossover trend
+    if (emaFast > emaSlow * 1.00005) {
+      upVotes++;
+      reasons.add('EMA↑');
+    } else if (emaFast < emaSlow * 0.99995) {
+      downVotes++;
+      reasons.add('EMA↓');
+    }
+
+    // Indicator 3: Recent momentum (last 3 ticks vs 3 before)
+    if (_priceBuffer.length >= 6) {
+      final last = _priceBuffer.last;
+      final prev3Avg = (_priceBuffer[_priceBuffer.length - 2] +
+              _priceBuffer[_priceBuffer.length - 3] +
+              _priceBuffer[_priceBuffer.length - 4]) /
+          3;
+      if (last < prev3Avg * 0.9997) {
+        upVotes++;
+        reasons.add('Bounce↑');
+      } else if (last > prev3Avg * 1.0003) {
+        downVotes++;
+        reasons.add('Reversal↓');
+      }
+    }
+
+    // ── Grade A: 2+ confirmations ────────────────────────────────────
+    if (upVotes >= 2 && upVotes > downVotes) {
+      _lastSignalReason = '🟢 A: ${reasons.join(' + ')}';
+      _skippedCandles = 0;
+      return 'UP';
+    } else if (downVotes >= 2 && downVotes > upVotes) {
+      _lastSignalReason = '🟢 A: ${reasons.join(' + ')}';
+      _skippedCandles = 0;
+      return 'DOWN';
+    }
+
+    // ── Grade B: 1 single indicator ──────────────────────────────────
+    if (upVotes >= 1 && upVotes > downVotes) {
+      _lastSignalReason = '🟡 B: ${reasons.join(' + ')}';
+      _skippedCandles = 0;
+      return 'UP';
+    } else if (downVotes >= 1 && downVotes > upVotes) {
+      _lastSignalReason = '🟡 B: ${reasons.join(' + ')}';
+      _skippedCandles = 0;
+      return 'DOWN';
+    }
+
+    // ── Grade C: Pure momentum (last tick direction) ─────────────────
+    if (_priceBuffer.length >= 2) {
+      final mom = _priceBuffer.last > _priceBuffer[_priceBuffer.length - 2]
+          ? 'DOWN'   // price naik → ikut trend turun (mean reversion)
+          : 'UP';    // price turun → ikut trend naik (mean reversion)
+      _lastSignalReason = '🔵 C: Momentum only';
+      _skippedCandles = 0;
+      return mom;
+    }
+
+    _lastSignalReason = 'Sideways — menunggu...';
+    return 'SKIP'; // Should almost never happen
+  }
+
+  /// Check if we are at the start of a candle boundary (aligned with timeframe)
+  bool _isCandleOpenMoment(DateTime now) {
+    final s = now.second;
+    switch (_tradeDurationSeconds) {
+      case 15:
+        return (s % 15) < 3; // fire in first 3 seconds of each 15s candle
+      case 30:
+        return (s % 30) < 3;
+      case 60:
+        return s < 3; // first 3 seconds of each minute
+      case 120:
+        return s < 3 && (now.minute % 2 == 0);
+      case 300:
+        return s < 3 && (now.minute % 5 == 0);
+      default:
+        return s < 3;
+    }
   }
 
   TradingController() {
@@ -111,25 +293,80 @@ class TradingController extends ChangeNotifier {
       }
     });
 
-    // Auto-Signal generator loop (runs every 45 seconds if bot is running and auto-trade is active)
-    _autoSignalTimer = Timer.periodic(const Duration(seconds: 45), (timer) {
+    // Auto-Signal generator loop — checks every second
+    // Uses candle-aligned timing + tiered smart signal
+    _autoSignalTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_isBotRunning && _isAutoTradingActive) {
-        final direction = (DateTime.now().second % 2 == 0) ? "UP" : "DOWN";
-        generateSignal(direction);
+        if (_isTradePending) {
+          final int maxAllowedDuration = _tradeDurationSeconds + 15;
+          if (_pendingTradeSecondsActive >= maxAllowedDuration) {
+            _resolvePendingTrade(isWin: false);
+          } else {
+            _pendingTradeSecondsActive++;
+          }
+          return;
+        }
+
+        _secondsSinceLastSignal++;
+        final now = DateTime.now();
+        // Minimum cooldown = trade duration + 3s safety gap
+        final cooldown = _tradeDurationSeconds + 3;
+        if (_secondsSinceLastSignal >= cooldown && _isCandleOpenMoment(now)) {
+          _secondsSinceLastSignal = 0;
+          // Emergency override: if bot skipped 2+ candles, force a signal
+          final forceNow = _skippedCandles >= 2;
+          final dir = _computeSmartSignal(forceEmergency: forceNow);
+          if (dir != 'SKIP') {
+            generateSignal(dir);
+          } else {
+            _skippedCandles++;
+            notifyListeners();
+          }
+        }
       }
     });
   }
 
   void generateSignal(String direction) {
     if (!_isBotRunning) return;
+
+    // Resolve any previous pending trade as a loss since a new signal is generated
+    if (_isTradePending) {
+      _resolvePendingTrade(isWin: false);
+    }
+
     _lastSignalDirection = direction;
     _signalId++;
+
+    // Start new pending trade!
+    _startBalanceOfTrade = _currentAccountBalance;
+    _pendingTradeSize = _nextTrade;
+    _isTradePending = true;
+    _pendingTradeSecondsActive = 0; // reset active seconds
+    _addHistory("OPEN", _nextTrade, 0);
+
     notifyListeners();
   }
 
   // Toggle Bot Status
   void toggleBot() {
     _isBotRunning = !_isBotRunning;
+    if (!_isBotRunning && _isTradePending) {
+      // Resolve any pending trade as loss when bot stops
+      _resolvePendingTrade(isWin: false);
+      // Stop foreground service so bot no longer runs in background
+      BotForegroundService.stopService();
+    } else if (_isBotRunning) {
+      _isTradePending = false;
+      _secondsSinceLastSignal = 0;
+      _skippedCandles = 0;
+      _startBalanceOfTrade = _currentAccountBalance;
+      // Start foreground service to keep bot alive in background
+      BotForegroundService.startService();
+    } else {
+      // Bot stopped normally (no pending trade)
+      BotForegroundService.stopService();
+    }
     notifyListeners();
   }
 
@@ -146,6 +383,7 @@ class TradingController extends ChangeNotifier {
     required bool autoTrading,
     required int minBalance,
     required String platformUrl,
+    required int tradeDuration,
   }) {
     _baseTrade = base;
     _martingaleTrade = martingale;
@@ -158,6 +396,7 @@ class TradingController extends ChangeNotifier {
     _isAutoTradingActive = autoTrading;
     _minimumBalanceGuard = minBalance;
     _platformUrl = platformUrl;
+    _tradeDurationSeconds = tradeDuration;
     
     // Recalculate next trade sizing
     _nextTrade = _isMartingaleActive ? _martingaleTrade : _baseTrade;
@@ -169,15 +408,129 @@ class TradingController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateAccountBalance(int val) {
+  void updateAccountBalance(int val, {bool isDemo = false}) {
     _currentAccountBalance = val;
+    _isDemoWallet = isDemo;
+
+    // Check if we have a pending trade and the balance went up (win)
+    if (_isBotRunning && _isTradePending) {
+      if (val > _startBalanceOfTrade) {
+        // Balance went up! This means the pending trade won!
+        _resolvePendingTrade(isWin: true, newBalance: val);
+      }
+    }
     
-    // Force Stop if Balance Guard triggered
-    if (_isAutoTradingActive && _currentAccountBalance < _minimumBalanceGuard) {
+    // Force Stop if Balance Guard triggered (only for Real Wallet)
+    if (_isAutoTradingActive && !_isDemoWallet && _currentAccountBalance < _minimumBalanceGuard) {
       _isAutoTradingActive = false;
       _isBotRunning = false;
+      BotForegroundService.stopService();
       _addHistory("GUARD_STOP", 0, 0);
     }
+    notifyListeners();
+  }
+
+  void _resolvePendingTrade({required bool isWin, int? newBalance}) {
+    if (!_isTradePending) return;
+
+    // Find the pending log in history and update it
+    final pendingIndex = _historyLogs.indexWhere((log) => log['result'] == 'OPEN');
+    
+    int profitDiff = 0;
+    if (isWin) {
+      // Calculate actual profit diff from balance change if available,
+      // otherwise estimate it (82% of stake)
+      if (newBalance != null && _startBalanceOfTrade > 0) {
+        profitDiff = newBalance - _startBalanceOfTrade;
+      } else {
+        profitDiff = (_pendingTradeSize * 0.82).round();
+      }
+      _profit += profitDiff;
+
+      if (pendingIndex != -1) {
+        _historyLogs[pendingIndex]['result'] = 'WIN';
+        _historyLogs[pendingIndex]['profitChange'] = profitDiff;
+      }
+
+      if (_isDemoWallet) {
+        _isDemoWallet = false;
+      }
+
+      _isMartingaleActive = false;
+      _consecutiveLosses = 0;
+      _nextTrade = _baseTrade;
+    } else {
+      profitDiff = -_pendingTradeSize;
+      _profit += profitDiff;
+
+      if (pendingIndex != -1) {
+        _historyLogs[pendingIndex]['result'] = 'LOSS';
+        _historyLogs[pendingIndex]['profitChange'] = profitDiff;
+      }
+
+      _isMartingaleActive = true;
+      _consecutiveLosses++;
+
+      // 1. Check Stop Loss Limit
+      bool stopLossTriggered = false;
+      if (_stopLossLimit != "off") {
+        final limit = int.tryParse(_stopLossLimit);
+        if (limit != null && _consecutiveLosses >= limit) {
+          if (_isAutoDemo) {
+            _isDemoWallet = true;
+          } else {
+            _isBotRunning = false;
+            BotForegroundService.stopService();
+          }
+
+          _nextTrade = _baseTrade;
+          _consecutiveLosses = 0;
+          _isMartingaleActive = false;
+          stopLossTriggered = true;
+        }
+      }
+
+      if (!stopLossTriggered) {
+        // 2. Check Martingale Capping / Resets
+        bool reachedMaxMart = false;
+        if (_maxMartingaleLevels != "always") {
+          final limit = int.tryParse(_maxMartingaleLevels);
+          if (limit != null && _consecutiveLosses > limit) {
+            reachedMaxMart = true;
+          }
+        }
+
+        bool reachedResetMart = false;
+        if (_resetMartingaleLevel != "off") {
+          final limit = int.tryParse(_resetMartingaleLevel);
+          if (limit != null && _consecutiveLosses > limit) {
+            reachedResetMart = true;
+          }
+        }
+
+        if (reachedMaxMart || reachedResetMart) {
+          _nextTrade = _baseTrade;
+          _consecutiveLosses = 0;
+          _isMartingaleActive = false;
+        } else {
+          if (_consecutiveLosses == 1) {
+            _nextTrade = _martingaleTrade;
+          } else {
+            double factor = 1.0 + (_martingaleMultiplierPercent / 100.0);
+            _nextTrade = (_nextTrade * factor).round();
+          }
+        }
+      }
+    }
+
+    _isTradePending = false;
+    
+    // Check Take Profit Limit
+    if (_profit >= _takeProfitLimit) {
+      _isBotRunning = false;
+      BotForegroundService.stopService();
+    }
+
     notifyListeners();
   }
 
@@ -185,90 +538,28 @@ class TradingController extends ChangeNotifier {
   void simulateWin() {
     if (!_isBotRunning) return;
     
-    int profitEarned = (_nextTrade * 0.82).round();
-    _profit += profitEarned;
-
-    _addHistory("WIN", _nextTrade, profitEarned);
-
-    // Switch back to real wallet on win if auto demo was active
-    if (_isDemoWallet) {
-      _isDemoWallet = false;
+    if (_isTradePending) {
+      _resolvePendingTrade(isWin: true);
+    } else {
+      _pendingTradeSize = _nextTrade;
+      _isTradePending = true;
+      _addHistory("OPEN", _nextTrade, 0);
+      _resolvePendingTrade(isWin: true);
     }
-
-    // Reset Martingale
-    _isMartingaleActive = false;
-    _consecutiveLosses = 0;
-    _nextTrade = _baseTrade;
-
-    // Check Take Profit Limit
-    if (_profit >= _takeProfitLimit) {
-      _isBotRunning = false;
-    }
-
-    notifyListeners();
   }
 
   // Simulate Loser
   void simulateLoss() {
     if (!_isBotRunning) return;
     
-    _profit -= _nextTrade;
-
-    _addHistory("LOSS", _nextTrade, -_nextTrade);
-
-    _isMartingaleActive = true;
-    _consecutiveLosses++;
-    
-    // 1. Check Stop Loss Limit
-    if (_stopLossLimit != "off") {
-      final limit = int.tryParse(_stopLossLimit);
-      if (limit != null && _consecutiveLosses >= limit) {
-        if (_isAutoDemo) {
-          _isDemoWallet = true;
-        } else {
-          _isBotRunning = false;
-        }
-        
-        _nextTrade = _baseTrade;
-        _consecutiveLosses = 0;
-        _isMartingaleActive = false;
-        notifyListeners();
-        return;
-      }
-    }
-
-    // 2. Check Martingale Capping / Resets
-    bool reachedMaxMart = false;
-    if (_maxMartingaleLevels != "always") {
-      final limit = int.tryParse(_maxMartingaleLevels);
-      if (limit != null && _consecutiveLosses > limit) {
-        reachedMaxMart = true;
-      }
-    }
-
-    bool reachedResetMart = false;
-    if (_resetMartingaleLevel != "off") {
-      final limit = int.tryParse(_resetMartingaleLevel);
-      if (limit != null && _consecutiveLosses > limit) {
-        reachedResetMart = true;
-      }
-    }
-
-    if (reachedMaxMart || reachedResetMart) {
-      _nextTrade = _baseTrade;
-      _consecutiveLosses = 0;
-      _isMartingaleActive = false;
+    if (_isTradePending) {
+      _resolvePendingTrade(isWin: false);
     } else {
-      if (_consecutiveLosses == 1) {
-        _nextTrade = _martingaleTrade;
-      } else {
-        // Apply Martingale percentage (e.g. 122% means multiply previous by 2.22)
-        double factor = 1.0 + (_martingaleMultiplierPercent / 100.0);
-        _nextTrade = (_nextTrade * factor).round();
-      }
+      _pendingTradeSize = _nextTrade;
+      _isTradePending = true;
+      _addHistory("OPEN", _nextTrade, 0);
+      _resolvePendingTrade(isWin: false);
     }
-    
-    notifyListeners();
   }
 
   void _addHistory(String result, int size, int profitDiff) {

@@ -1,6 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- INTERNET permission required for WebView to load Olymp Trade platform -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- FOREGROUND_SERVICE: keeps the trading bot alive when app is in background -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- WAKE_LOCK: prevents CPU from sleeping during bot execution -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- POST_NOTIFICATIONS: required on Android 13+ to show the persistent bot notification -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:label="FENNEC PRO"
         android:name="${applicationName}"
@@ -32,6 +39,12 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Native foreground service: keeps Flutter engine alive when app is in background -->
+        <service
+            android:name=".ForegroundBotService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false"
+            android:stopWithTask="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

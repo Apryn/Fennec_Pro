@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'theme/cyber_theme.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/trading_controller.dart';
+import 'services/background_service.dart';
 import 'views/auth_screen.dart';
 import 'views/dashboard_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // Initialize the background foreground service configuration
+  BotForegroundService.init();
   runApp(const FennecProApp());
 }
 
