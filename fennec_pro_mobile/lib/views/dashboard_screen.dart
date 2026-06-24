@@ -64,7 +64,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
 
     showDialog(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.75),
+      barrierColor: Colors.black.withOpacity(0.75),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
@@ -92,7 +92,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                         const SizedBox(height: 2),
                         Text(
                           'Simpan pengaturan sebelum menjalankan bot',
-                          style: TextStyle(fontSize: 9, color: CyberTheme.colorTextMuted.withValues(alpha: 0.85), fontWeight: FontWeight.normal),
+                          style: TextStyle(fontSize: 9, color: CyberTheme.colorTextMuted.withOpacity(0.85), fontWeight: FontWeight.normal),
                         ),
                       ],
                     ),
@@ -125,14 +125,14 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                                 const SizedBox(height: 2),
                                 Text(
                                   'Pindah ke demo saat loss sesuai stop loss, kembali saat menang',
-                                  style: TextStyle(fontSize: 7.5, color: CyberTheme.colorTextMuted.withValues(alpha: 0.8)),
+                                  style: TextStyle(fontSize: 7.5, color: CyberTheme.colorTextMuted.withOpacity(0.8)),
                                 ),
                               ],
                             ),
                           ),
                           Switch(
                             value: localAutoDemo,
-                            activeThumbColor: CyberTheme.neonYellow,
+                            activeColor: CyberTheme.neonYellow,
                             onChanged: (val) {
                               setDialogState(() {
                                 localAutoDemo = val;
@@ -158,14 +158,14 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                                 const SizedBox(height: 2),
                                 Text(
                                   'Klik otomatis UP/DOWN langsung di market dengan sistem jeda acak anti-ban',
-                                  style: TextStyle(fontSize: 7.5, color: CyberTheme.colorTextMuted.withValues(alpha: 0.8)),
+                                  style: TextStyle(fontSize: 7.5, color: CyberTheme.colorTextMuted.withOpacity(0.8)),
                                 ),
                               ],
                             ),
                           ),
                           Switch(
                             value: localAutoTrading,
-                            activeThumbColor: CyberTheme.neonYellow,
+                            activeColor: CyberTheme.neonYellow,
                             onChanged: (val) {
                               setDialogState(() {
                                 localAutoTrading = val;
@@ -180,8 +180,8 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.015),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                          color: Colors.white.withOpacity(0.015),
+                          border: Border.all(color: Colors.white.withOpacity(0.05)),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
@@ -207,7 +207,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                                         inputFormatters: [ThousandsSeparatorInputFormatter()],
                                         style: const TextStyle(fontSize: 11, color: Colors.white),
                                         decoration: InputDecoration(
-                                          prefixText: 'Rp ',
+                                          prefixText: '${trading.currencySymbol} ',
                                           prefixStyle: const TextStyle(color: Colors.white70, fontSize: 11),
                                           fillColor: const Color(0xFF131722),
                                           filled: true,
@@ -231,7 +231,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                                         inputFormatters: [ThousandsSeparatorInputFormatter()],
                                         style: const TextStyle(fontSize: 11, color: Colors.white),
                                         decoration: InputDecoration(
-                                          prefixText: 'Rp ',
+                                          prefixText: '${trading.currencySymbol} ',
                                           prefixStyle: const TextStyle(color: Colors.white70, fontSize: 11),
                                           fillColor: const Color(0xFF131722),
                                           filled: true,
@@ -285,7 +285,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                                 const Text('Reset Martingale', style: TextStyle(fontSize: 9, color: CyberTheme.colorTextMuted, fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 4),
                                 DropdownButtonFormField<String>(
-                                  initialValue: localResetMart,
+                                  value: localResetMart,
                                   dropdownColor: CyberTheme.cardBg,
                                   style: const TextStyle(fontSize: 11, color: Colors.white),
                                   decoration: InputDecoration(
@@ -328,8 +328,8 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
 
                                 const Text('Maks Martingale', style: TextStyle(fontSize: 9, color: CyberTheme.colorTextMuted, fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 4),
-                                DropdownButtonFormField<String>(
-                                  initialValue: localMaxMart,
+                                                               DropdownButtonFormField<String>(
+                                  value: localMaxMart,
                                   dropdownColor: CyberTheme.cardBg,
                                   style: const TextStyle(fontSize: 11, color: Colors.white),
                                   decoration: InputDecoration(
@@ -356,8 +356,8 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
 
                                 const Text('Stop Loss', style: TextStyle(fontSize: 9, color: CyberTheme.colorTextMuted, fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 4),
-                                DropdownButtonFormField<String>(
-                                  initialValue: localStopLoss,
+                                                               DropdownButtonFormField<String>(
+                                  value: localStopLoss,
                                   dropdownColor: CyberTheme.cardBg,
                                   style: const TextStyle(fontSize: 11, color: Colors.white),
                                   decoration: InputDecoration(
@@ -405,7 +405,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                                   inputFormatters: [ThousandsSeparatorInputFormatter()],
                                   style: const TextStyle(fontSize: 11, color: Colors.white),
                                   decoration: InputDecoration(
-                                    prefixText: 'Rp ',
+                                    prefixText: '${trading.currencySymbol} ',
                                     prefixStyle: const TextStyle(color: Colors.white70, fontSize: 11),
                                     fillColor: const Color(0xFF131722),
                                     filled: true,
@@ -432,7 +432,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                                   inputFormatters: [ThousandsSeparatorInputFormatter()],
                                   style: const TextStyle(fontSize: 11, color: Colors.white),
                                   decoration: InputDecoration(
-                                    prefixText: 'Rp ',
+                                    prefixText: '${trading.currencySymbol} ',
                                     prefixStyle: const TextStyle(color: Colors.white70, fontSize: 11),
                                     fillColor: const Color(0xFF131722),
                                     filled: true,
@@ -528,6 +528,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                         minBalance: minBalance,
                         platformUrl: platformUrl,
                         tradeDuration: localTradeDuration,
+                        signalMode: 'follow-winner',
                       );
                       Navigator.pop(context);
                     }
@@ -557,36 +558,25 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     return ListenableBuilder(
       listenable: trading,
       builder: (context, child) {
-        // Prepare list of tab view pages
-        final List<Widget> subpages = [
-          _buildHomeDashboard(context, trading, currencyFormatter),
-          const HistoryTab(),
-          const WebTab(),
-          const ProfileTab(),
-          const PersonaliseTab(),
-        ];
-
         return Scaffold(
           body: SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: IndexedStack(
-                index: _currentIndex,
-                children: subpages,
+                // Outer: index 0 = Dashboard, index 1 = semua tab lainnya
+                index: _currentIndex == 0 ? 0 : 1,
+                children: [
+                  _buildHomeDashboard(context, trading, currencyFormatter),
+                  child!, // Inner IndexedStack — tab Riwayat/Web/Profile/Personalise
+                ],
               ),
             ),
           ),
           bottomNavigationBar: Theme(
-            data: Theme.of(context).copyWith(
-              canvasColor: CyberTheme.cardBg,
-            ),
+            data: Theme.of(context).copyWith(canvasColor: CyberTheme.cardBg),
             child: BottomNavigationBar(
               currentIndex: _currentIndex,
-              onTap: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
+              onTap: (index) => setState(() => _currentIndex = index),
               type: BottomNavigationBarType.fixed,
               selectedItemColor: trading.activeAccentColor,
               unselectedItemColor: CyberTheme.colorTextMuted,
@@ -595,36 +585,31 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
               selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
               unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
               items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.dashboard_outlined),
-                  activeIcon: Icon(Icons.dashboard),
-                  label: 'Dashboard',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.history_outlined),
-                  activeIcon: Icon(Icons.history),
-                  label: 'Riwayat',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.language_outlined),
-                  activeIcon: Icon(Icons.language),
-                  label: 'Web',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person_outline),
-                  activeIcon: Icon(Icons.person),
-                  label: 'Profile',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.palette_outlined),
-                  activeIcon: Icon(Icons.palette),
-                  label: 'Personalise',
-                ),
+                BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Dashboard'),
+                BottomNavigationBarItem(icon: Icon(Icons.history_outlined),   activeIcon: Icon(Icons.history),   label: 'Riwayat'),
+                BottomNavigationBarItem(icon: Icon(Icons.language_outlined),  activeIcon: Icon(Icons.language),  label: 'Web'),
+                BottomNavigationBarItem(icon: Icon(Icons.person_outline),     activeIcon: Icon(Icons.person),    label: 'Profile'),
+                BottomNavigationBarItem(icon: Icon(Icons.palette_outlined),   activeIcon: Icon(Icons.palette),   label: 'Personalise'),
               ],
             ),
           ),
         );
       },
+      // Tab-tab ini TIDAK rebuild setiap kali trading state berubah.
+      // Mereka sudah punya listener sendiri masing-masing.
+      child: IndexedStack(
+        // _currentIndex 1 = Riwayat (inner 0)
+        // _currentIndex 2 = Web     (inner 1)
+        // _currentIndex 3 = Profile (inner 2)
+        // _currentIndex 4 = Personalise (inner 3)
+        index: _currentIndex > 0 ? _currentIndex - 1 : 0,
+        children: const [
+          HistoryTab(),
+          WebTab(),
+          ProfileTab(),
+          PersonaliseTab(),
+        ],
+      ),
     );
   }
 
@@ -706,7 +691,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Text(
-                    'Rp',
+                    trading.currencySymbol,
                     style: TextStyle(
                       fontSize: trading.highContrastMode ? 20 : 16,
                       fontWeight: FontWeight.bold,
@@ -737,9 +722,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                     style: TextStyle(fontSize: 11, color: CyberTheme.colorTextSecondary),
                   ),
                   Text(
-                    trading.isDemoWallet
-                        ? 'D ${formatter.format(trading.currentAccountBalance).trim()}'
-                        : 'Rp ${formatter.format(trading.currentAccountBalance).trim()}',
+                    '${trading.currencySymbol} ${formatter.format(trading.currentAccountBalance).trim()}',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -759,16 +742,16 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
+                      color: Colors.white.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(4),
                       border: Border.all(
                         color: trading.isMartingaleActive
-                            ? CyberTheme.neonYellow.withValues(alpha: 0.3)
-                            : trading.activeAccentColor.withValues(alpha: 0.3),
+                            ? CyberTheme.neonYellow.withOpacity(0.3)
+                            : trading.activeAccentColor.withOpacity(0.3),
                       ),
                     ),
                     child: Text(
-                      'Rp ${formatter.format(trading.nextTrade)}',
+                      '${trading.currencySymbol} ${formatter.format(trading.nextTrade)}',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -787,7 +770,12 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
         Row(
           children: [
             Expanded(
-              child: _buildGridCard('Jam Sekarang', trading.liveTime),
+              // ValueListenableBuilder: hanya widget jam ini yang rebuild setiap detik
+              // Sebelumnya seluruh dashboard rebuild setiap detik hanya karena jam!
+              child: ValueListenableBuilder<String>(
+                valueListenable: FennecState.trading.liveTimeNotifier,
+                builder: (_, time, __) => _buildGridCard('Jam Sekarang', time),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -797,7 +785,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
         ),
         const SizedBox(height: 16),
 
-        // Status banner
+        // Status banner + live stats panel
         AnimatedBuilder(
           animation: _fadeController,
           builder: (context, child) {
@@ -807,28 +795,110 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
             );
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: const Color(0xFF242933),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: CyberTheme.borderDark),
             ),
-            child: Row(
-              children: [
-                StatusDot(
-                  color: trading.isBotRunning ? trading.activeAccentColor : CyberTheme.neonRed,
-                  glow: trading.isBotRunning,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  trading.isBotRunning ? 'Status: Fennec sedang bekerja...' : 'Status: Fennec dihentikan.',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: CyberTheme.colorTextSecondary),
-                ),
-              ],
-            ),
+            child: trading.isBotRunning
+                ? Column(
+                    children: [
+                      // Status baris atas
+                      Row(
+                        children: [
+                          StatusDot(color: trading.activeAccentColor, glow: true),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              trading.isTradePending
+                                  ? '⏳ Trade aktif — tunggu hasil...'
+                                  : trading.postResolveCooldownRemaining > 0
+                                      ? '⏱ Cooldown sebelum trade berikutnya'
+                                      : '📡 Menunggu sinyal candle baru...',
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: CyberTheme.colorTextSecondary),
+                            ),
+                          ),
+                          // Countdown
+                          if (trading.isTradePending)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: trading.activeAccentColor.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: trading.activeAccentColor.withOpacity(0.4)),
+                              ),
+                              child: Text(
+                                '${trading.pendingSecondsRemaining}s',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: trading.activeAccentColor),
+                              ),
+                            )
+                          else if (trading.postResolveCooldownRemaining > 0)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: CyberTheme.neonYellow.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: CyberTheme.neonYellow.withOpacity(0.4)),
+                              ),
+                              child: Text(
+                                '${trading.postResolveCooldownRemaining}s',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: CyberTheme.neonYellow),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      const Divider(color: CyberTheme.borderDark, height: 1),
+                      const SizedBox(height: 8),
+                      // Stats baris bawah
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildMiniStat(
+                            'WIN RATE',
+                            '${trading.sessionWinRate.toStringAsFixed(0)}%',
+                            trading.sessionWinRate >= 50 ? CyberTheme.neonGreen : CyberTheme.neonRed,
+                          ),
+                          Container(width: 1, height: 24, color: CyberTheme.borderDark),
+                          _buildMiniStat(
+                            'W / L',
+                            '${trading.sessionWins} / ${trading.sessionLosses}',
+                            CyberTheme.colorTextSecondary,
+                          ),
+                          Container(width: 1, height: 24, color: CyberTheme.borderDark),
+                          _buildMiniStat(
+                            'MART. LVL',
+                            trading.martingaleLevel == 0 ? 'Base' : 'Lv. ${trading.martingaleLevel}',
+                            trading.martingaleLevel == 0
+                                ? CyberTheme.neonGreen
+                                : trading.martingaleLevel >= 3
+                                    ? CyberTheme.neonRed
+                                    : CyberTheme.neonYellow,
+                          ),
+                          Container(width: 1, height: 24, color: CyberTheme.borderDark),
+                          _buildMiniStat(
+                            'NEXT TRADE',
+                            '${trading.currencySymbol} ${formatter.format(trading.nextTrade)}',
+                            trading.isMartingaleActive ? CyberTheme.neonYellow : CyberTheme.colorTextSecondary,
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                : const Row(
+                    children: [
+                      StatusDot(color: CyberTheme.neonRed, glow: false),
+                      SizedBox(width: 10),
+                      Text(
+                        'Status: Fennec dihentikan.',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: CyberTheme.colorTextSecondary),
+                      ),
+                    ],
+                  ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
 
         // Primary Control Buttons
         Row(
@@ -895,9 +965,9 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                       child: OutlinedButton(
                         onPressed: trading.isBotRunning ? () => trading.simulateWin() : null,
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: CyberTheme.neonGreen.withValues(alpha: 0.3)),
+                          side: BorderSide(color: CyberTheme.neonGreen.withOpacity(0.3)),
                           foregroundColor: CyberTheme.neonGreen,
-                          backgroundColor: CyberTheme.neonGreen.withValues(alpha: 0.05),
+                          backgroundColor: CyberTheme.neonGreen.withOpacity(0.05),
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                         ),
@@ -909,9 +979,9 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                       child: OutlinedButton(
                         onPressed: trading.isBotRunning ? () => trading.simulateLoss() : null,
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: CyberTheme.neonRed.withValues(alpha: 0.3)),
+                          side: BorderSide(color: CyberTheme.neonRed.withOpacity(0.3)),
                           foregroundColor: CyberTheme.neonRed,
-                          backgroundColor: CyberTheme.neonRed.withValues(alpha: 0.05),
+                          backgroundColor: CyberTheme.neonRed.withOpacity(0.05),
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                         ),
@@ -928,7 +998,24 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     );
   }
 
+  Widget _buildMiniStat(String label, String value, Color valueColor) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 7.5, fontWeight: FontWeight.bold, color: CyberTheme.colorTextMuted, letterSpacing: 0.6),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          value,
+          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: valueColor),
+        ),
+      ],
+    );
+  }
+
   Widget _buildGridCard(String label, String value) {
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: CyberTheme.standardCardDecoration(),
@@ -976,7 +1063,7 @@ class StatusDot extends StatelessWidget {
         boxShadow: glow
             ? [
                 BoxShadow(
-                  color: color.withValues(alpha: 0.8),
+                  color: color.withOpacity(0.8),
                   blurRadius: 6,
                   spreadRadius: 1,
                 )

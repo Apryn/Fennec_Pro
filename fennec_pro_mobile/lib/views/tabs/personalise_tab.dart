@@ -3,8 +3,15 @@ import '../../theme/cyber_theme.dart';
 import '../../main.dart';
 import '../../controllers/trading_controller.dart';
 
-class PersonaliseTab extends StatelessWidget {
+class PersonaliseTab extends StatefulWidget {
   const PersonaliseTab({super.key});
+
+  @override
+  State<PersonaliseTab> createState() => _PersonaliseTabState();
+}
+
+class _PersonaliseTabState extends State<PersonaliseTab> {
+  double? _localGlowStrength;
 
   @override
   Widget build(BuildContext context) {
@@ -13,6 +20,8 @@ class PersonaliseTab extends StatelessWidget {
     return ListenableBuilder(
       listenable: tradingController,
       builder: (context, child) {
+        final currentGlow = _localGlowStrength ?? tradingController.glowStrength;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -90,13 +99,21 @@ class PersonaliseTab extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Slider(
-                          value: tradingController.glowStrength,
+                          value: currentGlow,
                           min: 0.0,
                           max: 20.0,
                           activeColor: tradingController.activeAccentColor,
                           inactiveColor: CyberTheme.borderDark,
                           onChanged: (val) {
+                            setState(() {
+                              _localGlowStrength = val;
+                            });
+                          },
+                          onChangeEnd: (val) {
                             tradingController.setGlowStrength(val);
+                            setState(() {
+                              _localGlowStrength = null;
+                            });
                           },
                         ),
                         Padding(
@@ -106,7 +123,7 @@ class PersonaliseTab extends StatelessWidget {
                             children: [
                               const Text('Minimal', style: TextStyle(fontSize: 10, color: CyberTheme.colorTextMuted)),
                               Text(
-                                '${tradingController.glowStrength.toInt()} px',
+                                '${currentGlow.toInt()} px',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
@@ -135,7 +152,7 @@ class PersonaliseTab extends StatelessWidget {
                         style: TextStyle(fontSize: 11, color: CyberTheme.colorTextMuted, height: 1.4),
                       ),
                       value: tradingController.highContrastMode,
-                      activeThumbColor: tradingController.activeAccentColor,
+                      activeColor: tradingController.activeAccentColor,
                       contentPadding: EdgeInsets.zero,
                       onChanged: (val) {
                         tradingController.setHighContrast(val);

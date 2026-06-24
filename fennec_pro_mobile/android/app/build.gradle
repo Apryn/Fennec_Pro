@@ -69,11 +69,15 @@ android {
         release {
             // Use release signing if key.properties exists, otherwise fall back to debug
             signingConfig = keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
-            minifyEnabled false
-            shrinkResources false
+            // R8 minification reduces APK size (~35MB → ~15MB)
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
             signingConfig = signingConfigs.debug
+            minifyEnabled false
+            shrinkResources false
         }
     }
 }

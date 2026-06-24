@@ -13,26 +13,43 @@ void main() {
   runApp(const FennecProApp());
 }
 
-class FennecProApp extends StatelessWidget {
+class FennecProApp extends StatefulWidget {
   const FennecProApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Create static singletons in controllers to access state easily.
-    final authController = AuthController();
-    final tradingController = TradingController();
+  State<FennecProApp> createState() => _FennecProAppState();
+}
 
+class _FennecProAppState extends State<FennecProApp> {
+  late final AuthController _authController;
+  late final TradingController _tradingController;
+
+  @override
+  void initState() {
+    super.initState();
+    _authController = AuthController();
+    _tradingController = TradingController();
     // Store references in custom inherited provider or global accessors
-    FennecState.init(authController, tradingController);
+    FennecState.init(_authController, _tradingController);
+  }
 
+  @override
+  void dispose() {
+    _authController.dispose();
+    _tradingController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: authController,
+      listenable: _authController,
       builder: (context, child) {
         return MaterialApp(
           title: 'FENNEC PRO',
           debugShowCheckedModeBanner: false,
           theme: CyberTheme.themeData,
-          home: authController.isActivated
+          home: _authController.isActivated
               ? const DashboardScreen()
               : const AuthScreen(),
         );

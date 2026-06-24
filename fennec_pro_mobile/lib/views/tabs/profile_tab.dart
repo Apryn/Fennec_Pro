@@ -54,16 +54,16 @@ class ProfileTab extends StatelessWidget {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: color.withValues(alpha: 0.4),
+                                  color: color.withOpacity(0.4),
                                   blurRadius: 15,
                                   spreadRadius: 2,
                                 )
                               ],
                             ),
                             alignment: Alignment.center,
-                            child: const Text(
-                              'TR',
-                              style: TextStyle(
+                            child: Text(
+                              _getInitials(authController.currentTraderId),
+                              style: const TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w900,
                                 color: Colors.black,
@@ -89,7 +89,7 @@ class ProfileTab extends StatelessWidget {
                           authController.deactivate();
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: CyberTheme.neonRed.withValues(alpha: 0.1),
+                          backgroundColor: CyberTheme.neonRed.withOpacity(0.1),
                           foregroundColor: CyberTheme.neonRed,
                           side: const BorderSide(color: CyberTheme.neonRed, width: 1.0),
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -148,9 +148,9 @@ class ProfileTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: CyberTheme.neonGreen.withValues(alpha: 0.15),
+              color: CyberTheme.neonGreen.withOpacity(0.15),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: CyberTheme.neonGreen.withValues(alpha: 0.3), width: 1),
+              border: Border.all(color: CyberTheme.neonGreen.withOpacity(0.3), width: 1),
             ),
             child: Text(
               badgeText,
@@ -164,5 +164,12 @@ class ProfileTab extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getInitials(String id) {
+    final clean = id.trim().replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
+    if (clean.isEmpty) return "TR";
+    if (clean.length >= 2) return clean.substring(0, 2);
+    return clean;
   }
 }

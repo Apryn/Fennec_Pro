@@ -11,18 +11,27 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.5
-  google_fonts: ^8.1.0
+  google_fonts: ^6.1.0
   intl: ^0.18.0
   webview_flutter: ^4.4.2
+  shared_preferences: ^2.2.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.14.1
 
 flutter:
   uses-material-design: true
   
-  # Cyber-theme glow assets or graphic overlays can be declared here if needed
-  # assets:
-  #   - assets/images/
+  assets:
+    - assets/icons/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#131722"
+  adaptive_icon_foreground: "assets/icons/icon.png"
