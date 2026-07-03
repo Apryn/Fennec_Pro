@@ -475,8 +475,9 @@ class TradingController extends ChangeNotifier {
           if (_pendingTradeSecondsActive >= maxWait) {
             // Deteksi hasil secara deterministik lewat saldo jika WebView tidak mengirimkan event
             final isWin = _currentAccountBalance > _startBalanceOfTrade;
-            debugPrint('[Fennec] ⏱️ Durasi trade tercapai. Menyelesaikan via perbandingan saldo: ${isWin ? "WIN" : "LOSS"}');
-            _resolvePendingTrade(isWin: isWin);
+            final isDraw = _currentAccountBalance == _startBalanceOfTrade;
+            debugPrint('[Fennec] ⏱️ Durasi trade tercapai. Menyelesaikan via perbandingan saldo: ${isDraw ? "DRAW" : (isWin ? "WIN" : "LOSS")}');
+            _resolvePendingTrade(isWin: isWin, isDraw: isDraw);
             return;
           }
         } else if (_postResolveCooldown > 0) {
@@ -654,12 +655,17 @@ class TradingController extends ChangeNotifier {
       _savePrefsDebounced();
     }
 
-    // Deteksi WIN dari perubahan balance — HANYA jika trade benar-benar pending
+    // Deteksi WIN atau DRAW dari perubahan balance — HANYA jika trade benar-benar pending
     if (_isBotRunning && _isTradePending && _startBalanceOfTrade > 0) {
       if (val > _startBalanceOfTrade) {
         debugPrint('[Fennec] 🟢 WIN detected via balance: $val > $_startBalanceOfTrade');
         _resolvePendingTrade(isWin: true, newBalance: val);
         // Setelah resolve, return langsung — jangan lanjut cek guard
+        notifyListeners();
+        return;
+      } else if (val == _startBalanceOfTrade) {
+        debugPrint('[Fennec] 🟡 DRAW detected via balance: $val == $_startBalanceOfTrade');
+        _resolvePendingTrade(isWin: false, isDraw: true, newBalance: val);
         notifyListeners();
         return;
       }
