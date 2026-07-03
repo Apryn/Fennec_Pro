@@ -216,6 +216,19 @@ class TradingController extends ChangeNotifier {
 
   // ── Smart Signal Generator ───────────────────────────────────────────
   String _generateSmartSignal() {
+    if (_tradeDurationSeconds == 5) {
+      // Khusus 5 detik: Ulangi arah yang sama (UP/DOWN) sampai profit.
+      // Setelah profit (consecutiveLosses == 0), balikkan arah untuk rantai berikutnya.
+      if (_lastSignalDirection == null) {
+        return 'UP';
+      }
+      if (_consecutiveLosses > 0) {
+        return _lastSignalDirection!;
+      } else {
+        return _lastSignalDirection == 'UP' ? 'DOWN' : 'UP';
+      }
+    }
+
     if (_signalMode == 'random') {
       return _rng.nextBool() ? 'UP' : 'DOWN';
     }
