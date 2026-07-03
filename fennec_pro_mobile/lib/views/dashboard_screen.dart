@@ -69,6 +69,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     String localResetMart = trading.resetMartingaleLevel;
     String localStopLoss = trading.stopLossLimit;
     int localTradeDuration = trading.tradeDurationSeconds;
+    String localSignalMode = trading.signalMode;
 
     int parseFormattedInt(String input) {
       final clean = input.replaceAll(RegExp(r'[^0-9]'), '');
@@ -509,6 +510,35 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                           }
                         },
                       ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Mode Sinyal',
+                        style: TextStyle(fontSize: 9, color: CyberTheme.colorTextMuted, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      DropdownButtonFormField<String>(
+                        value: localSignalMode,
+                        dropdownColor: CyberTheme.cardBg,
+                        style: const TextStyle(fontSize: 11, color: Colors.white),
+                        decoration: InputDecoration(
+                          fillColor: const Color(0xFF131722),
+                          filled: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
+                        ),
+                        items: const [
+                          DropdownMenuItem<String>(value: 'follow-winner', child: Text('Follow Winner (Tren)')),
+                          DropdownMenuItem<String>(value: 'random', child: Text('Random (Acak)')),
+                          DropdownMenuItem<String>(value: 'alternate', child: Text('Alternate (Selang-seling)')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            setDialogState(() {
+                              localSignalMode = val;
+                            });
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -542,7 +572,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                         minBalance: minBalance,
                         platformUrl: platformUrl,
                         tradeDuration: localTradeDuration,
-                        signalMode: 'follow-winner',
+                        signalMode: localSignalMode,
                       );
                       Navigator.pop(context);
                     }
