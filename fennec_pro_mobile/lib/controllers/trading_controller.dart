@@ -495,13 +495,16 @@ class TradingController extends ChangeNotifier {
   }
 
   bool _shouldTriggerSignal(DateTime time, int durationSeconds) {
+    if (durationSeconds == 5) {
+      // Khusus 5 detik: Picu langsung di batas candle karena delay klik instan (50ms-200ms)
+      return time.second % 5 == 0;
+    }
+
     // Kita menembak sinyal 2 detik sebelum batas candle (candle boundary)
     // untuk mengompensasi delay acak simulasi klik di WebView (rata-rata 2.5 detik).
     final targetTime = time.add(const Duration(seconds: 2));
     
-    if (durationSeconds == 5) {
-      return targetTime.second % 5 == 0;
-    } else if (durationSeconds == 15) {
+    if (durationSeconds == 15) {
       return targetTime.second % 15 == 0;
     } else if (durationSeconds == 30) {
       return targetTime.second % 30 == 0;
