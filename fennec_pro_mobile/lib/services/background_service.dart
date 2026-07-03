@@ -34,4 +34,18 @@ class BotForegroundService {
       await _channel.invokeMethod('updateNotification', {'status': status});
     } catch (_) {}
   }
+
+  /// Toggle keeping the screen awake/on.
+  static Future<void> keepScreenOn(bool keepOn) async {
+    try {
+      await _channel.invokeMethod('keepScreenOn', {'keepOn': keepOn});
+    } catch (_) {}
+  }
+
+  /// Launch external URL using System Intent (no pub package required).
+  static Future<void> launchUrl(String url) async {
+    try {
+      await _channel.invokeMethod('launchUrl', {'url': url});
+    } catch (_) {}
+  }
 }

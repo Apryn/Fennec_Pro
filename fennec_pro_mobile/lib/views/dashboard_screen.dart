@@ -17,13 +17,14 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProviderStateMixin {
+class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   int _currentIndex = 0;
   late AnimationController _fadeController;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // For breathing fade animation of the status banner
     _fadeController = AnimationController(
       vsync: this,
@@ -35,8 +36,20 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _fadeController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      final trading = FennecState.trading;
+      if (trading.isBotRunning) {
+        debugPrint('[Fennec] App minimized/backgrounded. Stopping bot automatically.');
+        trading.toggleBot();
+      }
+    }
   }
 
   void _openConfigModal(BuildContext context) {
@@ -481,6 +494,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
                         ),
                         items: const [
+                          DropdownMenuItem<int>(value: 5, child: Text('5 Detik')),
                           DropdownMenuItem<int>(value: 15, child: Text('15 Detik')),
                           DropdownMenuItem<int>(value: 30, child: Text('30 Detik')),
                           DropdownMenuItem<int>(value: 60, child: Text('1 Menit')),

@@ -1,14 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/config_service.dart';
 
 class AuthController extends ChangeNotifier {
   bool _isActivated = false;
   String _currentTraderId = "";
   String? _authError;
+  bool _isLoading = false;
 
   bool get isActivated      => _isActivated;
   String get currentTraderId => _currentTraderId;
   String? get authError     => _authError;
+  bool get isLoading        => _isLoading;
 
   AuthController() {
     _loadSession();
@@ -45,7 +48,7 @@ class AuthController extends ChangeNotifier {
   // ─── Auth Logic ───────────────────────────────────────────────────────────────
 
   /// Attempt activation based on business rules
-  bool activate(String traderId) {
+  Future<bool> activate(String traderId) async {
     _authError = null;
     final String id = traderId.trim();
 
@@ -63,18 +66,29 @@ class AuthController extends ChangeNotifier {
       return false;
     }
 
-    if (RegExp(r'^\d{5,15}$').hasMatch(id)) {
-      _isActivated = true;
-      _currentTraderId = id;
-      _authError = null;
-      _saveSession(); // persist login
-      notifyListeners();
-      return true;
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final isValid = await ConfigService.verifyTraderId(id);
+      _isLoading = false;
+
+      if (isValid) {
+        _isActivated = true;
+        _currentTraderId = id;
+        _authError = null;
+        await _saveSession(); // persist login
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      _isLoading = false;
+      debugPrint('[Fennec] Auth error during remote verification: $e');
     }
 
     _authError =
-        "INVALID: ID tidak ditemukan atau format tidak sesuai. "
-        "Pastikan Anda sudah mendaftar via link di bio TikTok dan memasukkan 5-15 digit angka.";
+        "ID tidak ditemukan atau belum terdaftar di bawah link afiliasi kami. "
+        "Pastikan Anda mendaftar melalui link di bio TikTok dan hubungi CS / SUPPORT di bawah untuk verifikasi.";
     notifyListeners();
     return false;
   }

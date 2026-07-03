@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/background_service.dart';
+import '../main.dart';
+import '../services/config_service.dart';
 
 // SharedPreferences keys
 class _Prefs {
@@ -35,6 +37,8 @@ class _Prefs {
   static const nextTrade           = 'pref_next_trade';
   static const botStartTime        = 'pref_bot_start_time';
   static const sessionStartBalance = 'pref_session_start_balance';
+  static const realSessionStartBalance = 'pref_real_session_start_balance';
+  static const demoSessionStartBalance = 'pref_demo_session_start_balance';
   static const currencySymbol      = 'pref_currency_symbol';
 }
 
@@ -49,6 +53,8 @@ class TradingController extends ChangeNotifier {
   bool _isMartingaleActive = false;
   DateTime? _botStartTime;
   int _sessionStartBalance = 0;
+  int _realSessionStartBalance = 0;
+  int _demoSessionStartBalance = 0;
   int _consecutiveLosses = 0;
   String _currencySymbol = "Rp";
 
@@ -324,11 +330,13 @@ class TradingController extends ChangeNotifier {
       _profit                      = prefs.getInt(_Prefs.sessionProfit)      ?? 0;
       _sessionWins                 = prefs.getInt(_Prefs.sessionWins)        ?? 0;
       _sessionLosses               = prefs.getInt(_Prefs.sessionLosses)      ?? 0;
-      _isBotRunning                = prefs.getBool(_Prefs.isBotRunning)      ?? false;
+      _isBotRunning                = false; // Selalu mulai dalam keadaan OFF (mati) demi keamanan saat aplikasi dibuka kembali
       _isMartingaleActive          = prefs.getBool(_Prefs.isMartActive)      ?? false;
       _consecutiveLosses           = prefs.getInt(_Prefs.consecutiveLosses)  ?? 0;
       _nextTrade                   = prefs.getInt(_Prefs.nextTrade)          ?? _baseTrade;
       _sessionStartBalance         = prefs.getInt(_Prefs.sessionStartBalance) ?? 0;
+      _realSessionStartBalance     = prefs.getInt(_Prefs.realSessionStartBalance) ?? 0;
+      _demoSessionStartBalance     = prefs.getInt(_Prefs.demoSessionStartBalance) ?? 0;
       _currencySymbol              = prefs.getString(_Prefs.currencySymbol)   ?? "Rp";
 
       final startTimeStr = prefs.getString(_Prefs.botStartTime);
@@ -344,6 +352,8 @@ class TradingController extends ChangeNotifier {
           final List<dynamic> decoded = jsonDecode(logsStr);
           _historyLogs.clear();
           _historyLogs.addAll(decoded.map((item) => Map<String, dynamic>.from(item)));
+          // Bersihkan riwayat transaksi menggantung ("OPEN"/PENDING) saat startup
+          _historyLogs.removeWhere((log) => log['result'] == 'OPEN');
         } catch (e) {
           debugPrint('Failed to decode history logs: $e');
         }
@@ -384,6 +394,8 @@ class TradingController extends ChangeNotifier {
       await prefs.setInt   (_Prefs.consecutiveLosses, _consecutiveLosses);
       await prefs.setInt   (_Prefs.nextTrade,         _nextTrade);
       await prefs.setInt   (_Prefs.sessionStartBalance,_sessionStartBalance);
+      await prefs.setInt   (_Prefs.realSessionStartBalance, _realSessionStartBalance);
+      await prefs.setInt   (_Prefs.demoSessionStartBalance, _demoSessionStartBalance);
       await prefs.setString(_Prefs.botStartTime,       _botStartTime?.toIso8601String() ?? "");
       await prefs.setString(_Prefs.currencySymbol,     _currencySymbol);
       await prefs.setString(_Prefs.historyLogs,       jsonEncode(_historyLogs));
@@ -474,7 +486,9 @@ class TradingController extends ChangeNotifier {
     // untuk mengompensasi delay acak simulasi klik di WebView (rata-rata 2.5 detik).
     final targetTime = time.add(const Duration(seconds: 2));
     
-    if (durationSeconds == 15) {
+    if (durationSeconds == 5) {
+      return targetTime.second % 5 == 0;
+    } else if (durationSeconds == 15) {
       return targetTime.second % 15 == 0;
     } else if (durationSeconds == 30) {
       return targetTime.second % 30 == 0;
@@ -526,21 +540,25 @@ class TradingController extends ChangeNotifier {
       _isTradePending        = false;
       _pendingTradeSecondsActive = 0;
       _postResolveCooldown   = 0;
-      _startBalanceOfTrade   = _currentAccountBalance;
-      _sessionStartBalance   = _currentAccountBalance;
-      _botStartTime          = DateTime.now();
+      _startBalanceOfTrade       = _currentAccountBalance;
+      _sessionStartBalance       = _currentAccountBalance;
+      _realSessionStartBalance   = _isDemoWallet ? 0 : _currentAccountBalance;
+      _demoSessionStartBalance   = _isDemoWallet ? _currentAccountBalance : 0;
+      _botStartTime              = DateTime.now();
       _sessionWins           = 0;  // reset session stats
       _sessionLosses         = 0;
       _signalId              = 0;
       _lastExecutedSignalId  = 0;
       _lastSignalDirection   = null;
       BotForegroundService.startService();
+      BotForegroundService.keepScreenOn(true);
       _updateForegroundNotification();
       _savePrefsDebounced();
     } else {
       if (_isTradePending) {
         _resolvePendingTrade(isWin: false);
       }
+      BotForegroundService.keepScreenOn(false);
       BotForegroundService.stopService();
     }
     notifyListeners();
@@ -604,12 +622,16 @@ class TradingController extends ChangeNotifier {
     }
 
     if (_isBotRunning) {
-      if (walletTypeChanged || _sessionStartBalance == 0) {
-        _sessionStartBalance = val;
+      if (isDemo) {
+        if (_demoSessionStartBalance == 0) {
+          _demoSessionStartBalance = val;
+        }
+      } else {
+        if (_realSessionStartBalance == 0) {
+          _realSessionStartBalance = val;
+        }
       }
-      if (_sessionStartBalance > 0) {
-        _profit = val - _sessionStartBalance;
-      }
+      _sessionStartBalance = isDemo ? _demoSessionStartBalance : _realSessionStartBalance;
       _savePrefsDebounced();
     }
 
@@ -641,15 +663,15 @@ class TradingController extends ChangeNotifier {
   // Hanya aktif jika masih ada trade pending (mencegah stale event dari trade lama
   // yang terlambat mengenai trade baru).
   //
-  void resolveCurrentTradeFromWebView({required bool isWin}) {
+  void resolveCurrentTradeFromWebView({required bool isWin, bool isDraw = false}) {
     if (!_isBotRunning) return;
     if (!_isTradePending) {
       // Tidak ada trade pending — abaikan event WebView yang terlambat
       debugPrint('[Fennec] ⚠️ resolveFromWebView called but no trade pending — ignored');
       return;
     }
-    debugPrint('[Fennec] ${isWin ? "🟢 WIN" : "🔴 LOSS"} resolved via WebView RESULT_DETECTED');
-    _resolvePendingTrade(isWin: isWin);
+    debugPrint('[Fennec] ${isDraw ? "🟡 DRAW" : (isWin ? "🟢 WIN" : "🔴 LOSS")} resolved via WebView RESULT_DETECTED');
+    _resolvePendingTrade(isWin: isWin, isDraw: isDraw);
   }
 
   // ─── Trade Resolution — Inti Logika Martingale ────────────────────────────────
@@ -658,7 +680,7 @@ class TradingController extends ChangeNotifier {
   // LOSS → hitung Martingale kompensasi (modal × multiplier) agar saat WIN
   //        berikutnya semua loss sebelumnya tertutup + sedikit profit
   //
-  void _resolvePendingTrade({required bool isWin, int? newBalance}) {
+  void _resolvePendingTrade({required bool isWin, bool isDraw = false, int? newBalance}) {
     // Guard utama: pastikan memang ada trade pending
     if (!_isTradePending) return;
 
@@ -666,7 +688,17 @@ class TradingController extends ChangeNotifier {
 
     int profitDiff = 0;
 
-    if (isWin) {
+    if (isDraw) {
+      HapticFeedback.selectionClick();
+      profitDiff = 0; // DRAW/Refund - no profit change
+      
+      if (pendingIndex != -1) {
+        _historyLogs[pendingIndex]['result'] = 'DRAW';
+        _historyLogs[pendingIndex]['profitChange'] = 0;
+      }
+      
+      debugPrint('[Fennec] Trade resolved as DRAW. Martingale levels kept as is. Next trade: $_nextTrade');
+    } else if (isWin) {
       HapticFeedback.heavyImpact();
       // Hitung profit dari perubahan balance (akurat) atau estimasi 82% payout
       if (newBalance != null && _startBalanceOfTrade > 0) {
@@ -760,6 +792,17 @@ class TradingController extends ChangeNotifier {
         }
       }
     }
+
+    // Log trade dynamically to database
+    ConfigService.logTrade(
+      traderId: FennecState.auth.currentTraderId,
+      asset: _activeAsset,
+      direction: _lastSignalDirection ?? "UNKNOWN",
+      nominal: _pendingTradeSize,
+      result: isDraw ? "DRAW" : (isWin ? "WIN" : "LOSS"),
+      profit: profitDiff,
+      balance: _currentAccountBalance,
+    );
 
     // Tandai trade selesai
     _isTradePending = false;

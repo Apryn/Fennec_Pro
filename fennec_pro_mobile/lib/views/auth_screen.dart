@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/cyber_theme.dart';
 import '../main.dart';
+import '../services/background_service.dart';
+import '../services/config_service.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -11,6 +13,7 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   final TextEditingController _traderIdController = TextEditingController();
+  bool _showIdGuide = false;
 
   @override
   void dispose() {
@@ -134,6 +137,76 @@ class _AuthScreenState extends State<AuthScreen> {
                         }
                       },
                     ),
+                    const SizedBox(height: 8),
+                    
+                    // Toggleable Guide Button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _showIdGuide = !_showIdGuide;
+                            });
+                          },
+                          icon: Icon(
+                            _showIdGuide ? Icons.expand_less : Icons.help_outline,
+                            color: CyberTheme.neonGreen,
+                            size: 14,
+                          ),
+                          label: Text(
+                            _showIdGuide ? 'Tutup Panduan' : 'Bagaimana cara mencari Trader ID?',
+                            style: const TextStyle(
+                              color: CyberTheme.neonGreen,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            minimumSize: Size.zero,
+                            padding: EdgeInsets.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    // Collapsible Guide UI
+                    if (_showIdGuide) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: CyberTheme.cardBg,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: CyberTheme.borderDark, width: 1.0),
+                        ),
+                        child: const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Cara Menemukan Trader ID Anda:',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              '1. Buka dan masuk ke platform Olymp Trade.\n'
+                              '2. Tekan ikon Profil / Akun Anda di bar navigasi.\n'
+                              '3. Trader ID Anda adalah nomor unik (5-15 digit angka) yang tertera tepat di bawah nama profil Anda.',
+                              style: TextStyle(
+                                color: CyberTheme.colorTextSecondary,
+                                fontSize: 11,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 20),
                     
                     // Conditional Error Banners
@@ -159,10 +232,11 @@ class _AuthScreenState extends State<AuthScreen> {
                     
                     // Activate Button
                     ElevatedButton(
-                      onPressed: _handleActivate,
+                      onPressed: authController.isLoading ? null : _handleActivate,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: CyberTheme.neonGreen,
                         foregroundColor: Colors.black,
+                        disabledBackgroundColor: CyberTheme.neonGreen.withOpacity(0.5),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -170,8 +244,62 @@ class _AuthScreenState extends State<AuthScreen> {
                         elevation: 5,
                         shadowColor: CyberTheme.neonGreen.withOpacity(0.4),
                       ),
+                      child: authController.isLoading
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                              ),
+                            )
+                          : const Text(
+                              'AKTIVASI SEKARANG',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton(
+                      onPressed: () {
+                        BotForegroundService.launchUrl(ConfigService.affiliateUrl);
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: CyberTheme.neonGreen,
+                        side: const BorderSide(color: CyberTheme.neonGreen, width: 1.5),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                       child: const Text(
-                        'AKTIVASI SEKARANG',
+                        'DAFTAR AKUN AFILIASI BARU',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        BotForegroundService.launchUrl(ConfigService.supportUrl);
+                      },
+                      icon: const Icon(Icons.support_agent, size: 18),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: CyberTheme.neonBlue,
+                        side: const BorderSide(color: CyberTheme.neonBlue, width: 1.5),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      label: const Text(
+                        'HUBUNGI CS / SUPPORT',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,

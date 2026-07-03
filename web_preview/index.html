@@ -72,6 +72,21 @@
                             <input type="text" id="trader-id-input" placeholder="Contoh: 88888" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                         </div>
 
+                        <!-- Toggle Guide Button -->
+                        <button id="toggle-guide-btn" class="guide-toggle-btn" onclick="toggleGuide()">
+                            ❓ Bagaimana cara mencari Trader ID?
+                        </button>
+
+                        <!-- Collapsible Guide UI -->
+                        <div id="guide-box" class="guide-box hidden">
+                            <div class="guide-box-title">Cara Menemukan Trader ID Anda:</div>
+                            <div class="guide-box-content">
+                                1. Buka dan masuk ke platform Olymp Trade.<br>
+                                2. Tekan ikon Profil / Akun Anda di bar navigasi.<br>
+                                3. Trader ID Anda adalah nomor unik (5-15 digit angka) yang tertera tepat di bawah nama profil Anda.
+                            </div>
+                        </div>
+
                         <!-- Error Toast Message inside screen -->
                         <div id="auth-alert" class="alert-message hidden">
                             <span id="alert-text"></span>
@@ -79,6 +94,14 @@
 
                         <button id="activate-btn" class="btn-primary ripple">
                             AKTIVASI SEKARANG
+                        </button>
+
+                        <button id="register-affiliate-btn" class="btn-outlined-green ripple" onclick="openAffiliateLink()">
+                            DAFTAR AKUN AFILIASI BARU
+                        </button>
+
+                        <button id="contact-support-btn" class="btn-outlined-blue ripple" onclick="openSupportLink()">
+                            HUBUNGI CS / SUPPORT
                         </button>
 
                         <div class="auth-footer-info">

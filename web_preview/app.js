@@ -102,8 +102,8 @@ function startAutoSignalGenerator() {
             statusBanner.className = "status-banner active";
             statusIndicatorIcon.className = "status-indicator-icon animate-pulse-glow-green";
 
-            // Anti-ban random delay (1.5s to 3.5s) simulating human click delay
-            const delay = Math.floor(Math.random() * 2000) + 1500;
+            // Anti-ban random delay (0.5s to 1.5s) simulating human click delay
+            const delay = Math.floor(Math.random() * 1000) + 500;
             setTimeout(() => {
                 if (!isBotActive || !isAutoTradingActive) return;
 
@@ -187,7 +187,7 @@ function startAutoSignalGenerator() {
                 updateDashboardUI();
             }, delay);
         }
-    }, 15000); // Check/execute signal every 15 seconds for responsive simulation testing
+    }, 5000); // Check/execute signal every 5 seconds for responsive simulation testing
 }
 
 // --- TIMER LOGIC ---
@@ -333,7 +333,7 @@ function handleActivation() {
         updateDashboardUI();
     }
     else {
-        showAlert("INVALID: ID tidak ditemukan atau format tidak sesuai. Pastikan Anda sudah mendaftar via link di bio TikTok dan memasukkan 5-15 digit angka.", "error");
+        showAlert("ID tidak ditemukan atau belum terdaftar di bawah link afiliasi kami. Pastikan Anda mendaftar melalui link di bio TikTok dan hubungi CS / SUPPORT di bawah untuk verifikasi.", "error");
     }
 }
 
@@ -355,6 +355,27 @@ function showAlert(message, type) {
 
 function hideAlert() {
     authAlert.classList.add("hidden");
+}
+
+// --- GUIDE & SUPPORT REDIRECTS ---
+function toggleGuide() {
+    const guideBox = document.getElementById("guide-box");
+    const toggleBtn = document.getElementById("toggle-guide-btn");
+    if (guideBox.classList.contains("hidden")) {
+        guideBox.classList.remove("hidden");
+        toggleBtn.textContent = "✖ Tutup Panduan";
+    } else {
+        guideBox.classList.add("hidden");
+        toggleBtn.textContent = "❓ Bagaimana cara mencari Trader ID?";
+    }
+}
+
+function openAffiliateLink() {
+    window.open("https://olymptrade.com/?affiliate_id=YOUR_AFFILIATE_ID", "_blank");
+}
+
+function openSupportLink() {
+    window.open("https://wa.me/628123456789", "_blank");
 }
 
 // --- TAB ROUTING ---

@@ -1467,3 +1467,86 @@ input:checked + .slider-round:before {
     padding-left: 28px !important;
 }
 
+/* Outlined buttons */
+.btn-outlined-green {
+    background-color: transparent;
+    color: var(--neon-green);
+    border: 1.5px solid var(--neon-green);
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 12px;
+    text-align: center;
+}
+.btn-outlined-green:hover {
+    background-color: rgba(0, 200, 83, 0.1);
+    box-shadow: 0 0 10px rgba(0, 200, 83, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-outlined-blue {
+    background-color: transparent;
+    color: var(--neon-blue);
+    border: 1.5px solid var(--neon-blue);
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 12px;
+    text-align: center;
+}
+.btn-outlined-blue:hover {
+    background-color: rgba(0, 210, 255, 0.1);
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Toggle guide styling */
+.guide-toggle-btn {
+    background: none;
+    border: none;
+    color: var(--neon-green);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    align-self: flex-end;
+    margin-top: -16px;
+    margin-bottom: 20px;
+}
+.guide-toggle-btn:hover {
+    text-decoration: underline;
+}
+
+.guide-box {
+    background-color: var(--color-card);
+    border: 1px solid var(--color-text-muted);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 20px;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    animation: fadeIn 0.3s ease;
+}
+
+.guide-box-title {
+    color: #ffffff;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.guide-box-content {
+    color: var(--color-text-secondary);
+}
+

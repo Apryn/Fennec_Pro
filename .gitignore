@@ -25,3 +25,16 @@ fennec_pro_mobile/android/local.properties
 # Temporary files / Heap dumps / Logs
 *.hprof
 job_log.txt
+
+# Local secrets & credentials
+.env
+backend/.env
+Info_Password.txt
+Info_Password*
+*.apk
+FennecPro-Release.apk
+
+# Node dependencies
+node_modules/
+backend/node_modules/
+**/node_modules/
