@@ -527,6 +527,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
                         ),
                         items: const [
+                          DropdownMenuItem<String>(value: 'repeat-until-win', child: Text('Ulangi Sampai Profit')),
                           DropdownMenuItem<String>(value: 'follow-winner', child: Text('Follow Winner (Tren)')),
                           DropdownMenuItem<String>(value: 'random', child: Text('Random (Acak)')),
                           DropdownMenuItem<String>(value: 'alternate', child: Text('Alternate (Selang-seling)')),
