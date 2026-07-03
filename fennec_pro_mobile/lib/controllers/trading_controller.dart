@@ -648,6 +648,9 @@ class TradingController extends ChangeNotifier {
         }
       }
       _sessionStartBalance = isDemo ? _demoSessionStartBalance : _realSessionStartBalance;
+      if (_sessionStartBalance > 0) {
+        _profit = val - _sessionStartBalance;
+      }
       _savePrefsDebounced();
     }
 
