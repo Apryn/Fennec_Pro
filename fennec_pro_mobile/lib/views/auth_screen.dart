@@ -276,7 +276,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
                       child: const Text(
-                        'DAFTAR AKUN AFILIASI BARU',
+                        'DAFTAR',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
