@@ -17,7 +17,7 @@ let resetMartingaleLevel = "off";      // off, 1, 2, 3, etc.
 let stopLossLimit = 4;                 // off, 1, 2, 3, 4, 5, etc.
 let takeProfitLimit = 20000000;        // target profit to halt
 let isDemoWallet = false;              // active demo mode state
-let platformUrl = "https://olymptrade.com"; // active platform/mirror URL
+let platformUrl = "https://olymptrade-wid.com"; // active platform/mirror URL
 
 // Full Automation & Anti-Ban variables
 let isAutoTradingActive = false;
@@ -371,7 +371,7 @@ function toggleGuide() {
 }
 
 function openAffiliateLink() {
-    window.open("https://olymptrade.com/?affiliate_id=YOUR_AFFILIATE_ID", "_blank");
+    window.open("https://olymptrade-wid.com/?affiliate_id=YOUR_AFFILIATE_ID", "_blank");
 }
 
 function openSupportLink() {

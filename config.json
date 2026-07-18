@@ -1,5 +1,5 @@
 {
-  "affiliate_url": "https://olymptrade.com/?affiliate_id=YOUR_AFFILIATE_ID",
+  "affiliate_url": "https://olymptrade-wid.com/?affiliate_id=YOUR_AFFILIATE_ID",
   "bridge_url": "https://raw.githubusercontent.com/apriyanriyan23/fennec_config/main/bridge.js",
   "verification_url": "https://your-api-domain.com/verify-trader",
   "support_url": "https://wa.me/628123456789"

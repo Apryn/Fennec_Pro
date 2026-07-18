@@ -45,9 +45,9 @@ class _Prefs {
 class TradingController extends ChangeNotifier {
   // Trading state — profit resets to 0 each session
   int _profit = 0;
-  int _baseTrade = 14000;
-  int _martingaleTrade = 17000;
-  int _nextTrade = 14000;
+  int _baseTrade = 15000;
+  int _martingaleTrade = 18000;
+  int _nextTrade = 15000;
 
   bool _isBotRunning = false;
   bool _isMartingaleActive = false;
@@ -66,7 +66,7 @@ class TradingController extends ChangeNotifier {
   String _stopLossLimit = "4";
   int _takeProfitLimit = 20000000;
   bool _isDemoWallet = false;
-  String _platformUrl = 'https://olymptrade.com';
+  String _platformUrl = 'https://olymptrade-wid.com';
 
   // Full Automation fields
   bool _isAutoTradingActive = false;
@@ -322,8 +322,8 @@ class TradingController extends ChangeNotifier {
   Future<void> _loadPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      _baseTrade                   = prefs.getInt(_Prefs.baseTrade)          ?? 14000;
-      _martingaleTrade             = prefs.getInt(_Prefs.martingaleTrade)    ?? 17000;
+      _baseTrade                   = prefs.getInt(_Prefs.baseTrade)          ?? 15000;
+      _martingaleTrade             = prefs.getInt(_Prefs.martingaleTrade)    ?? 18000;
       _martingaleMultiplierPercent = prefs.getInt(_Prefs.multiplierPercent)  ?? 122;
       _maxMartingaleLevels         = prefs.getString(_Prefs.maxMartLevels)   ?? "always";
       _resetMartingaleLevel        = prefs.getString(_Prefs.resetMartLevel)  ?? "off";
@@ -335,7 +335,7 @@ class TradingController extends ChangeNotifier {
       _activeThemeColor            = prefs.getString(_Prefs.themeColor)      ?? 'neon-green';
       _glowStrength                = prefs.getDouble(_Prefs.glowStrength)    ?? 8.0;
       _highContrastMode            = prefs.getBool(_Prefs.highContrast)      ?? false;
-      _platformUrl                 = prefs.getString(_Prefs.platformUrl)     ?? 'https://olymptrade.com';
+      _platformUrl                 = prefs.getString(_Prefs.platformUrl)     ?? 'https://olymptrade-wid.com';
       _tradeDurationSeconds        = prefs.getInt(_Prefs.tradeDuration)      ?? 60;
       _signalMode                  = prefs.getString(_Prefs.signalMode)      ?? 'follow-winner';
       

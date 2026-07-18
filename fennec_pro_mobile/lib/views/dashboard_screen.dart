@@ -470,7 +470,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                         keyboardType: TextInputType.url,
                         style: const TextStyle(fontSize: 11, color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'https://olymptrade.com',
+                          hintText: 'https://olymptrade-wid.com',
                           hintStyle: const TextStyle(color: CyberTheme.colorTextMuted, fontSize: 11),
                           fillColor: const Color(0xFF131722),
                           filled: true,

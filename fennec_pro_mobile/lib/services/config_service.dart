@@ -7,7 +7,7 @@ class ConfigService {
   static const String _configUrl = "https://raw.githubusercontent.com/Apryn/Fennec_Pro/main/config.json";
 
   // Configuration variables with safe default values
-  static String affiliateUrl = "https://olymptrade.com";
+  static String affiliateUrl = "https://olymptrade-wid.com";
   static String bridgeUrl = "https://raw.githubusercontent.com/Apryn/Fennec_Pro/main/bridge.js";
   static String verificationUrl = ""; // If empty, local verification is used as fallback
   static String supportUrl = "https://wa.me/628123456789"; // Default fallback support link
