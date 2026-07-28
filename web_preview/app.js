@@ -23,6 +23,7 @@ let platformUrl = "https://olymptrade-wid.com"; // active platform/mirror URL
 let isAutoTradingActive = false;
 let minimumBalanceGuard = 200000;
 let currentAccountBalance = 0;
+let isPlatformLoaded = false;
 
 // Time Keeping Variables
 let clockInterval = null;
@@ -315,7 +316,7 @@ function handleActivation() {
 
     // Allow any numeric ID of 5-15 digits as success, except specific test IDs.
     if (inputVal === "77777") {
-        showAlert("WRONG_AFFILIATE: ID terdaftar di tim pusat, tetapi bukan melalui link khusus live ini. Silakan daftar ulang melalui link di bio TikTok kami!", "error");
+        showAlert("Trader ID belum terverifikasi otomatis. Silakan periksa kembali Trader ID Anda atau hubungi Support.", "error");
     } 
     else if (/^\d{5,15}$/.test(inputVal)) {
         // Success
@@ -333,7 +334,7 @@ function handleActivation() {
         updateDashboardUI();
     }
     else {
-        showAlert("ID tidak ditemukan atau belum terdaftar di bawah link afiliasi kami. Pastikan Anda mendaftar melalui link di bio TikTok dan hubungi CS / SUPPORT di bawah untuk verifikasi.", "error");
+        showAlert("Trader ID tidak terdaftar atau belum terverifikasi. Silakan periksa kembali nomor ID Anda atau hubungi Support.", "error");
     }
 }
 
@@ -375,7 +376,7 @@ function openAffiliateLink() {
 }
 
 function openSupportLink() {
-    window.open("https://wa.me/628123456789", "_blank");
+    window.open("https://t.me/secmon_support", "_blank");
 }
 
 // --- TAB ROUTING ---
@@ -400,6 +401,9 @@ function switchTab(tabName) {
 
     if (tabName === "history") {
         renderHistory();
+    } else if (tabName === "web") {
+        isPlatformLoaded = true;
+        updateDashboardUI();
     }
 }
 
@@ -471,6 +475,11 @@ function saveConfig() {
 
 // --- BOT STATUS CONTROLS ---
 function toggleBotStatus() {
+    if (!isBotActive && !isPlatformLoaded) {
+        alert("Platform Trading Belum Terhubung:\n\nHalaman platform trading Olymp Trade belum selesai dimuat atau Anda belum login ke akun Olymp Trade Anda.\n\nSilakan buka tab PLATFORM WEB untuk melakukan login terlebih dahulu.");
+        switchTab("web");
+        return;
+    }
     isBotActive = !isBotActive;
     updateDashboardUI();
 }
@@ -577,6 +586,19 @@ function runSimulateLoss() {
 
 // --- UI UPDATERS ---
 function updateDashboardUI() {
+    // Update platform readiness badge
+    const platformStatusText = document.getElementById("platform-status-text");
+    const headerPulseDot = document.getElementById("header-pulse-dot");
+    if (platformStatusText && headerPulseDot) {
+        if (typeof isPlatformLoaded !== "undefined" && isPlatformLoaded) {
+            platformStatusText.textContent = "Platform: Ready";
+            headerPulseDot.style.backgroundColor = "var(--neon-green)";
+        } else {
+            platformStatusText.textContent = "Platform: Offline";
+            headerPulseDot.style.backgroundColor = "var(--neon-red)";
+        }
+    }
+
     // Format profit counter string: 16.659.003
     profitCounter.textContent = formatCurrency(profitVal);
 
@@ -610,14 +632,14 @@ function updateDashboardUI() {
     // Bot Active states
     if (isBotActive) {
         statusBanner.className = "status-banner active";
-        statusBannerText.textContent = "Status: Fennec sedang bekerja...";
+        statusBannerText.textContent = "Status: Secmon sedang bekerja...";
         statusIndicatorIcon.className = "status-indicator-icon animate-pulse-glow-green";
         
         stopBotText.textContent = "STOP BOT";
         stopBotBtn.className = "btn-alert-red ripple";
     } else {
-        statusBanner.className = "status-banner";
-        statusBannerText.textContent = "Status: Fennec dihentikan.";
+        statusIndicator.className = "status-indicator-icon bg-red";
+        statusBannerText.textContent = "Status: Secmon dihentikan.";
         statusIndicatorIcon.className = "status-indicator-icon animate-pulse-glow-red";
         
         stopBotText.textContent = "START BOT";

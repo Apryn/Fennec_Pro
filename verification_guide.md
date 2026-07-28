@@ -1,18 +1,18 @@
-# Panduan Integrasi Server Verifikasi Trader ID (Fennec Pro)
+# Panduan Integrasi Server Verifikasi Trader ID (Secmon)
 
-Dokumen ini menjelaskan cara membuat server verifikasi untuk memvalidasi apakah suatu **Trader ID** terdaftar di bawah link afiliasi Anda sebelum pengguna dapat mengakses fitur premium bot Fennec Pro.
+Dokumen ini menjelaskan cara membuat server verifikasi untuk memvalidasi apakah suatu **Trader ID** terdaftar di bawah link afiliasi Anda sebelum pengguna dapat mengakses fitur premium bot Secmon.
 
 ---
 
-## 🛠️ 1. Cara Kerja Verifikasi di Fennec Pro
+## 🛠️ 1. Cara Kerja Verifikasi di Secmon
 
-Saat pengguna memasukkan Trader ID dan mengeklik tombol **Aktivasi**, aplikasi Fennec Pro akan mengirimkan permintaan HTTP GET ke server Anda:
+Saat pengguna memasukkan Trader ID dan mengeklik tombol **Aktivasi**, aplikasi Secmon akan mengirimkan permintaan HTTP GET ke server Anda:
 
 ```http
 GET https://api-anda.com/verify-trader?traderId=12345
 ```
 
-Aplikasi Fennec Pro akan menganggap ID tersebut **VALID** jika server Anda merespons dengan status code `200` dan mengembalikan JSON dengan format salah satu di bawah ini:
+Aplikasi Secmon akan menganggap ID tersebut **VALID** jika server Anda merespons dengan status code `200` dan mengembalikan JSON dengan format salah satu di bawah ini:
 * `{"active": true}`
 * `{"status": "success"}`
 * `{"valid": true}`

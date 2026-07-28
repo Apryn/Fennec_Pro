@@ -1,7 +1,7 @@
 (function() {
-  if (window.__fennecBridgeLoaded) return;
-  window.__fennecBridgeLoaded = true;
-  console.log("Fennec Pro Bridge v3.0 Loaded.");
+  if (window.__secmonBridgeLoaded) return;
+  window.__secmonBridgeLoaded = true;
+  console.log("Secmon Pro Bridge v3.0 Loaded.");
 
   // Helper: Try multiple selectors and return the first match
   function queryFirst(...selectors) {
@@ -76,7 +76,7 @@
         return candidates[0].element;
       }
     } catch (err) {
-      console.error("Fennec: Error in findButtonSemantically: " + err);
+      console.error("Secmon: Error in findButtonSemantically: " + err);
     }
     return null;
   }
@@ -120,7 +120,7 @@
         _lastSentBalance = balanceVal;
         window._lastSentCurrency = currencySymbol;
         const isDemo = /demo/i.test(text) || /^[dD](?:\s|[$€Rp0-9]|$)/.test(text.trim());
-        FennecBridge.postMessage("BALANCE_UPDATE:" + balanceVal + ":" + (isDemo ? "DEMO" : "REAL") + ":" + currencySymbol);
+        SecmonBridge.postMessage("BALANCE_UPDATE:" + balanceVal + ":" + (isDemo ? "DEMO" : "REAL") + ":" + currencySymbol);
       }
     }
   }
@@ -229,7 +229,7 @@
     const assetName = getActiveAsset();
     if (assetName && assetName !== _lastSentAsset) {
       _lastSentAsset = assetName;
-      FennecBridge.postMessage("ACTIVE_ASSET:" + assetName);
+      SecmonBridge.postMessage("ACTIVE_ASSET:" + assetName);
     }
   }
 
@@ -384,8 +384,8 @@
           const now = Date.now();
           if (now - _lastResultTime > 2500) { // 2.5s throttle to prevent duplicate triggers
             _lastResultTime = now;
-            console.log("[Fennec Bridge] DOM Result Detected via Color/Text: " + result + " (" + node.textContent.trim() + ")");
-            FennecBridge.postMessage("RESULT_DETECTED:" + result);
+            console.log("[Secmon Bridge] DOM Result Detected via Color/Text: " + result + " (" + node.textContent.trim() + ")");
+            SecmonBridge.postMessage("RESULT_DETECTED:" + result);
             return;
           }
         }
@@ -407,7 +407,7 @@
         if (cleanText) {
           const val = parseFloat(cleanText.replace(',', '.'));
           if (val > 0) {
-            FennecBridge.postMessage("TICK_UPDATE:" + val);
+            SecmonBridge.postMessage("TICK_UPDATE:" + val);
             return;
           }
         }
@@ -433,7 +433,7 @@
           const val = parseFloat(cleanText.replace(',', '.'));
           if (val > 0) {
             priceElementSelector = sel;
-            FennecBridge.postMessage("TICK_UPDATE:" + val);
+            SecmonBridge.postMessage("TICK_UPDATE:" + val);
             return;
           }
         }
@@ -475,7 +475,7 @@
         const prevVal = priceElementCandidates.get(el);
         if (prevVal !== val) {
           priceElementSelector = getUniqueSelector(el);
-          FennecBridge.postMessage("TICK_UPDATE:" + val);
+          SecmonBridge.postMessage("TICK_UPDATE:" + val);
           break;
         }
       }
@@ -504,14 +504,14 @@
 
   // 4. Humanized Event Dispatcher (Anti-Ban mouse simulation)
   let _lastClickTime = 0;
-  window.fennecExecuteClick = function(direction, nominal) {
+  window.secmonExecuteClick = function(direction, nominal) {
     const now = Date.now();
     if (now - _lastClickTime < 500) {
-      console.warn("Fennec Bridge: Double execution blocked in JS");
+      console.warn("Secmon Bridge: Double execution blocked in JS");
       return;
     }
     _lastClickTime = now;
-    console.log("Fennec Bridge triggering: " + direction + " | size: " + nominal);
+    console.log("Secmon Bridge triggering: " + direction + " | size: " + nominal);
 
     // --- Inject nominal amount ---
     const amountInput = queryFirst(
@@ -565,13 +565,13 @@
     }
 
     if (!button) {
-      console.log("Fennec: Primary selector failed for " + direction + ". Running semantic fallback scanner...");
+      console.log("Secmon: Primary selector failed for " + direction + ". Running semantic fallback scanner...");
       button = findButtonSemantically(direction);
     }
 
     if (!button) {
-      console.error("Fennec: Could not find " + direction + " button even with semantic search.");
-      FennecBridge.postMessage("SELECTOR_ERROR:" + direction);
+      console.error("Secmon: Could not find " + direction + " button even with semantic search.");
+      SecmonBridge.postMessage("SELECTOR_ERROR:" + direction);
       return;
     }
 
@@ -595,7 +595,7 @@
         button: 0
       });
       button.dispatchEvent(clickEvt);
-      console.log("Fennec: Injected single " + direction + " click at (" + Math.round(clickX) + ", " + Math.round(clickY) + ")");
+      console.log("Secmon: Injected single " + direction + " click at (" + Math.round(clickX) + ", " + Math.round(clickY) + ")");
     }, randomDelay);
   };
 })();

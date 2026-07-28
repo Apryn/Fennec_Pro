@@ -9,7 +9,7 @@
     <!-- POST_NOTIFICATIONS: required on Android 13+ to show the persistent bot notification -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
-        android:label="FENNEC PRO"
+        android:label="Secmon"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"

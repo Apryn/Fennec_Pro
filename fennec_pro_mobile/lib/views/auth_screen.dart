@@ -23,12 +23,12 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _handleActivate() {
     final id = _traderIdController.text;
-    FennecState.auth.activate(id);
+    SecmonState.auth.activate(id);
   }
 
   @override
   Widget build(BuildContext context) {
-    final authController = FennecState.auth;
+    final authController = SecmonState.auth;
 
     return Scaffold(
       body: SafeArea(
@@ -48,14 +48,14 @@ class _AuthScreenState extends State<AuthScreen> {
                       alignment: Alignment.center,
                       child: CustomPaint(
                         size: const Size(130, 130),
-                        painter: FennecLogoPainter(),
+                        painter: SecmonLogoPainter(),
                       ),
                     ),
                     const SizedBox(height: 20),
                     
                     // Titles
                     const Text(
-                      'FENNEC PRO',
+                      'SECMON',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 28,
@@ -85,7 +85,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     
                     // Description
                     const Text(
-                      'Masukkan Trader ID Olymp Trade Anda untuk mengaktifkan fitur otomatisasi Fennec Pro.',
+                      'Masukkan Trader ID Olymp Trade Anda untuk mengaktifkan fitur otomatisasi Secmon.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,
@@ -299,7 +299,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
                       label: const Text(
-                        'HUBUNGI CS / SUPPORT',
+                        'HUBUNGI CS / SUPPORT (TELEGRAM)',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
@@ -307,11 +307,32 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 24),
+                    
+                    // Risk Disclaimer
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: CyberTheme.borderDark, width: 0.8),
+                      ),
+                      child: const Text(
+                        '⚠️ PERINGATAN RISIKO: Secmon adalah sistem otomatisasi analisa. Trading pasar finansial mengandung risiko modal. Gunakan manajemen risiko dan modal secara bijak.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: CyberTheme.colorTextMuted,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 20),
                     
                     // Footer details
                     const Text(
-                      'Powered by Fennec Engine v4.2 • Secure SSL',
+                      'Powered by Secmon Engine v4.2 • Secure SSL',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 10,
@@ -329,108 +350,62 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 }
 
-// Custom painter to render the gorgeous geometric Cyber Fennec Fox face
-class FennecLogoPainter extends CustomPainter {
+// Custom painter to render the ultra premium thick Secmon 'S' Pulse emblem
+class SecmonLogoPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final double w = size.width;
     final double h = size.height;
     final center = Offset(w / 2, h / 2);
 
-    final Paint paint = Paint()..style = PaintingStyle.fill;
-    final Paint strokePaint = Paint()
+    final Paint glowPaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
+      ..strokeWidth = 12.0
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..color = CyberTheme.neonGreen.withOpacity(0.40)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
 
-    // 1. Draw Ear Left (Golden-amber Gradient)
-    final Path earLeft = Path()
-      ..moveTo(center.dx, h * 0.45)
-      ..lineTo(w * 0.15, h * 0.15)
-      ..lineTo(w * 0.35, h * 0.48)
-      ..close();
-    
-    final Gradient earGradLeft = LinearGradient(
-      colors: [CyberTheme.neonYellow, CyberTheme.background.withOpacity(0.1)],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    );
-    paint.shader = earGradLeft.createShader(Rect.fromLTWH(w * 0.15, h * 0.15, w * 0.35, h * 0.33));
-    canvas.drawPath(earLeft, paint);
-    strokePaint.color = CyberTheme.neonYellow;
-    canvas.drawPath(earLeft, strokePaint);
+    final Paint linePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 7.0
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
 
-    // 2. Draw Ear Right (Golden-amber Gradient)
-    final Path earRight = Path()
-      ..moveTo(center.dx, h * 0.45)
-      ..lineTo(w * 0.85, h * 0.15)
-      ..lineTo(w * 0.65, h * 0.48)
-      ..close();
-    
-    final Gradient earGradRight = LinearGradient(
-      colors: [CyberTheme.neonYellow, CyberTheme.background.withOpacity(0.1)],
+    final Shader lineShader = LinearGradient(
+      colors: [CyberTheme.neonGreen, CyberTheme.neonBlue],
       begin: Alignment.topRight,
       end: Alignment.bottomLeft,
-    );
-    paint.shader = earGradRight.createShader(Rect.fromLTWH(w * 0.5, h * 0.15, w * 0.35, h * 0.33));
-    canvas.drawPath(earRight, paint);
-    strokePaint.color = CyberTheme.neonYellow;
-    canvas.drawPath(earRight, strokePaint);
+    ).createShader(Rect.fromLTWH(0, 0, w, h));
 
-    // Remove shader for solid colors
-    paint.shader = null;
+    linePaint.shader = lineShader;
 
-    // 3. Draw Inner Ears Accent (Semi-transparent Electric Red)
-    paint.color = CyberTheme.neonRed.withOpacity(0.6);
-    final Path innerEarLeft = Path()
-      ..moveTo(w * 0.48, h * 0.45)
-      ..lineTo(w * 0.25, h * 0.24)
-      ..lineTo(w * 0.38, h * 0.47)
-      ..close();
-    canvas.drawPath(innerEarLeft, paint);
+    // Bold & Thick 'S' Pulse Wave
+    final Path sPulse = Path()
+      ..moveTo(w * 0.78, h * 0.26)
+      ..lineTo(w * 0.32, h * 0.26)
+      ..lineTo(w * 0.22, h * 0.46)
+      ..lineTo(center.dx, h * 0.50)
+      ..lineTo(w * 0.78, h * 0.54)
+      ..lineTo(w * 0.68, h * 0.74)
+      ..lineTo(w * 0.22, h * 0.74);
 
-    final Path innerEarRight = Path()
-      ..moveTo(w * 0.52, h * 0.45)
-      ..lineTo(w * 0.75, h * 0.24)
-      ..lineTo(w * 0.62, h * 0.47)
-      ..close();
-    canvas.drawPath(innerEarRight, paint);
+    // Draw glowing background stroke
+    canvas.drawPath(sPulse, glowPaint);
+    // Draw sharp front stroke
+    canvas.drawPath(sPulse, linePaint);
 
-    // 4. Draw Face Core Triangle (Solid Dark, Neon Green Outline)
-    paint.color = CyberTheme.cardBg;
-    final Path face = Path()
-      ..moveTo(center.dx, h * 0.78)
-      ..lineTo(w * 0.30, h * 0.48)
-      ..lineTo(w * 0.70, h * 0.48)
-      ..close();
-    canvas.drawPath(face, paint);
-    
-    strokePaint.color = CyberTheme.neonGreen;
-    strokePaint.strokeWidth = 2.0;
-    canvas.drawPath(face, strokePaint);
+    // Precision pulse dot in center with halo
+    final Paint dotHalo = Paint()
+      ..style = PaintingStyle.fill
+      ..color = CyberTheme.neonGreen.withOpacity(0.4)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+    canvas.drawCircle(Offset(center.dx, h * 0.50), 7.0, dotHalo);
 
-    // 5. Draw Muzzle (Solid Neon Green nose triangle)
-    paint.color = CyberTheme.neonGreen;
-    final Path nose = Path()
-      ..moveTo(center.dx, h * 0.78)
-      ..lineTo(w * 0.43, h * 0.65)
-      ..lineTo(w * 0.57, h * 0.65)
-      ..close();
-    canvas.drawPath(nose, paint);
-
-    // 6. Draw Glowing Eyes (Neon Green small polygons)
-    final Path eyeLeft = Path()
-      ..moveTo(w * 0.38, h * 0.53)
-      ..lineTo(w * 0.45, h * 0.55)
-      ..lineTo(w * 0.42, h * 0.50)
-      ..close();
-    canvas.drawPath(eyeLeft, paint);
-
-    final Path eyeRight = Path()
-      ..moveTo(w * 0.62, h * 0.53)
-      ..lineTo(w * 0.55, h * 0.55)
-      ..lineTo(w * 0.58, h * 0.50)
-      ..close();
-    canvas.drawPath(eyeRight, paint);
+    final Paint dotPaint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = CyberTheme.neonGreen;
+    canvas.drawCircle(Offset(center.dx, h * 0.50), 5.0, dotPaint);
   }
 
   @override

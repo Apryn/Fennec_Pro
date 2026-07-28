@@ -28,8 +28,8 @@ class _WebTabState extends State<WebTab> {
   @override
   void initState() {
     super.initState();
-    FennecState.trading.addListener(_onTradingStateChanged);
-    _loadedPlatformUrl = FennecState.trading.platformUrl;
+    SecmonState.trading.addListener(_onTradingStateChanged);
+    _loadedPlatformUrl = SecmonState.trading.platformUrl;
 
     // Periodic bridge keepalive: re-inject setiap 30 detik
     _bridgeKeepaliveTimer = Timer.periodic(const Duration(seconds: 30), (_) {
@@ -45,7 +45,7 @@ class _WebTabState extends State<WebTab> {
         debugPrint('[WebView JS] ${message.message}');
       })
       ..addJavaScriptChannel(
-        'FennecBridge',
+        'SecmonBridge',
         onMessageReceived: (JavaScriptMessage message) {
           final parts = message.message.split(':');
           final eventType = parts[0];
@@ -53,28 +53,28 @@ class _WebTabState extends State<WebTab> {
             final balance = int.tryParse(parts[1]) ?? 0;
             final isDemo = parts.length > 2 && parts[2] == 'DEMO';
             final currency = parts.length > 3 ? parts[3] : 'Rp';
-            FennecState.trading.updateAccountBalance(balance, isDemo: isDemo, currency: currency);
+            SecmonState.trading.updateAccountBalance(balance, isDemo: isDemo, currency: currency);
           } else if (eventType == 'RESULT_DETECTED') {
             // Gunakan resolveCurrentTradeFromWebView — aman karena ada guard internal:
             // jika tidak ada trade pending (stale event dari trade lama), diabaikan.
             final result = parts[1];
             if (result == 'WIN') {
-              FennecState.trading.resolveCurrentTradeFromWebView(isWin: true);
+              SecmonState.trading.resolveCurrentTradeFromWebView(isWin: true);
             } else if (result == 'LOSS') {
-              FennecState.trading.resolveCurrentTradeFromWebView(isWin: false);
+              SecmonState.trading.resolveCurrentTradeFromWebView(isWin: false);
             } else if (result == 'DRAW') {
-              FennecState.trading.resolveCurrentTradeFromWebView(isWin: false, isDraw: true);
+              SecmonState.trading.resolveCurrentTradeFromWebView(isWin: false, isDraw: true);
             }
           } else if (eventType == 'ACTIVE_ASSET') {
             final asset = parts[1];
-            FennecState.trading.updateActiveAsset(asset);
+            SecmonState.trading.updateActiveAsset(asset);
           } else if (eventType == 'TICK_UPDATE') {
             final price = double.tryParse(parts[1]) ?? 0.0;
             if (price > 0) {
-              FennecState.trading.addLivePriceTick(price);
+              SecmonState.trading.addLivePriceTick(price);
             }
           } else if (eventType == 'SELECTOR_ERROR') {
-            debugPrint('[Fennec] ⚠️ Button selector failed for direction: ${parts[1]}. Update selectors in web_tab.dart.');
+            debugPrint('[Secmon] ⚠️ Button selector failed for direction: ${parts[1]}. Update selectors in web_tab.dart.');
           }
         },
       )
@@ -121,13 +121,13 @@ class _WebTabState extends State<WebTab> {
 
   @override
   void dispose() {
-    FennecState.trading.removeListener(_onTradingStateChanged);
+    SecmonState.trading.removeListener(_onTradingStateChanged);
     _bridgeKeepaliveTimer?.cancel();
     super.dispose();
   }
 
   void _onTradingStateChanged() {
-    final trading = FennecState.trading;
+    final trading = SecmonState.trading;
 
     // Cek apakah platform URL berubah
     final currentConfigUrl = trading.platformUrl;
@@ -147,7 +147,7 @@ class _WebTabState extends State<WebTab> {
   void _executeAutoTrade(String direction, int nominal) {
     final now = DateTime.now();
     if (_lastExecutionTime != null && now.difference(_lastExecutionTime!).inMilliseconds < 500) {
-      debugPrint('[Fennec] ⚠️ Double execution blocked in Dart (cooldown active)');
+      debugPrint('[Secmon] ⚠️ Double execution blocked in Dart (cooldown active)');
       return;
     }
     _lastExecutionTime = now;
@@ -156,7 +156,7 @@ class _WebTabState extends State<WebTab> {
     _injectAntiBanBridge();
     if (mounted) {
       _controller.runJavaScript(
-        'if (window.fennecExecuteClick) { window.fennecExecuteClick("$direction", $nominal); }',
+        'if (window.secmonExecuteClick) { window.secmonExecuteClick("$direction", $nominal); }',
       );
     }
   }
@@ -166,9 +166,9 @@ class _WebTabState extends State<WebTab> {
     _isBridgeInjected = true;
     const String bridgeScript = r"""
 (function() {
-  if (window.__fennecBridgeLoaded) return;
-  window.__fennecBridgeLoaded = true;
-  console.log("Fennec Pro Bridge v3.0 Loaded.");
+  if (window.__secmonBridgeLoaded) return;
+  window.__secmonBridgeLoaded = true;
+  console.log("Secmon Pro Bridge v3.0 Loaded.");
 
   // Helper: Try multiple selectors and return the first match
   function queryFirst(...selectors) {
@@ -243,7 +243,7 @@ class _WebTabState extends State<WebTab> {
         return candidates[0].element;
       }
     } catch (err) {
-      console.error("Fennec: Error in findButtonSemantically: " + err);
+      console.error("Secmon: Error in findButtonSemantically: " + err);
     }
     return null;
   }
@@ -287,7 +287,7 @@ class _WebTabState extends State<WebTab> {
         _lastSentBalance = balanceVal;
         window._lastSentCurrency = currencySymbol;
         const isDemo = /demo/i.test(text) || /^[dD](?:\s|[$€Rp0-9]|$)/.test(text.trim());
-        FennecBridge.postMessage("BALANCE_UPDATE:" + balanceVal + ":" + (isDemo ? "DEMO" : "REAL") + ":" + currencySymbol);
+        SecmonBridge.postMessage("BALANCE_UPDATE:" + balanceVal + ":" + (isDemo ? "DEMO" : "REAL") + ":" + currencySymbol);
       }
     }
   }
@@ -396,7 +396,7 @@ class _WebTabState extends State<WebTab> {
     const assetName = getActiveAsset();
     if (assetName && assetName !== _lastSentAsset) {
       _lastSentAsset = assetName;
-      FennecBridge.postMessage("ACTIVE_ASSET:" + assetName);
+      SecmonBridge.postMessage("ACTIVE_ASSET:" + assetName);
     }
   }
 
@@ -551,8 +551,8 @@ class _WebTabState extends State<WebTab> {
           const now = Date.now();
           if (now - _lastResultTime > 2500) { // 2.5s throttle to prevent duplicate triggers
             _lastResultTime = now;
-            console.log("[Fennec Bridge] DOM Result Detected via Color/Text: " + result + " (" + node.textContent.trim() + ")");
-            FennecBridge.postMessage("RESULT_DETECTED:" + result);
+            console.log("[Secmon Bridge] DOM Result Detected via Color/Text: " + result + " (" + node.textContent.trim() + ")");
+            SecmonBridge.postMessage("RESULT_DETECTED:" + result);
             return;
           }
         }
@@ -574,7 +574,7 @@ class _WebTabState extends State<WebTab> {
         if (cleanText) {
           const val = parseFloat(cleanText.replace(',', '.'));
           if (val > 0) {
-            FennecBridge.postMessage("TICK_UPDATE:" + val);
+            SecmonBridge.postMessage("TICK_UPDATE:" + val);
             return;
           }
         }
@@ -600,7 +600,7 @@ class _WebTabState extends State<WebTab> {
           const val = parseFloat(cleanText.replace(',', '.'));
           if (val > 0) {
             priceElementSelector = sel;
-            FennecBridge.postMessage("TICK_UPDATE:" + val);
+            SecmonBridge.postMessage("TICK_UPDATE:" + val);
             return;
           }
         }
@@ -642,7 +642,7 @@ class _WebTabState extends State<WebTab> {
         const prevVal = priceElementCandidates.get(el);
         if (prevVal !== val) {
           priceElementSelector = getUniqueSelector(el);
-          FennecBridge.postMessage("TICK_UPDATE:" + val);
+          SecmonBridge.postMessage("TICK_UPDATE:" + val);
           break;
         }
       }
@@ -671,14 +671,14 @@ class _WebTabState extends State<WebTab> {
 
   // 4. Humanized Event Dispatcher (Anti-Ban mouse simulation)
   let _lastClickTime = 0;
-  window.fennecExecuteClick = function(direction, nominal) {
+  window.secmonExecuteClick = function(direction, nominal) {
     const now = Date.now();
     if (now - _lastClickTime < 500) {
-      console.warn("Fennec Bridge: Double execution blocked in JS");
+      console.warn("Secmon Bridge: Double execution blocked in JS");
       return;
     }
     _lastClickTime = now;
-    console.log("Fennec Bridge triggering: " + direction + " | size: " + nominal);
+    console.log("Secmon Bridge triggering: " + direction + " | size: " + nominal);
 
     // --- Inject nominal amount ---
     const amountInput = queryFirst(
@@ -732,13 +732,13 @@ class _WebTabState extends State<WebTab> {
     }
 
     if (!button) {
-      console.log("Fennec: Primary selector failed for " + direction + ". Running semantic fallback scanner...");
+      console.log("Secmon: Primary selector failed for " + direction + ". Running semantic fallback scanner...");
       button = findButtonSemantically(direction);
     }
 
     if (!button) {
-      console.error("Fennec: Could not find " + direction + " button even with semantic search.");
-      FennecBridge.postMessage("SELECTOR_ERROR:" + direction);
+      console.error("Secmon: Could not find " + direction + " button even with semantic search.");
+      SecmonBridge.postMessage("SELECTOR_ERROR:" + direction);
       return;
     }
 
@@ -762,7 +762,7 @@ class _WebTabState extends State<WebTab> {
         button: 0
       });
       button.dispatchEvent(clickEvt);
-      console.log("Fennec: Injected single " + direction + " click at (" + Math.round(clickX) + ", " + Math.round(clickY) + ")");
+      console.log("Secmon: Injected single " + direction + " click at (" + Math.round(clickX) + ", " + Math.round(clickY) + ")");
     }, randomDelay);
   };
 })();
@@ -821,7 +821,7 @@ class _WebTabState extends State<WebTab> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '${FennecState.trading.platformUrl}/platform',
+                  '${SecmonState.trading.platformUrl}/platform',
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 11, color: CyberTheme.colorTextSecondary, fontWeight: FontWeight.w500),
                 ),

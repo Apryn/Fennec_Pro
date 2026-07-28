@@ -32,7 +32,7 @@ class _HistoryTabState extends State<HistoryTab> {
     final formattedProfit = (netProfit >= 0 ? "+" : "") + currencyFormatter.format(netProfit);
 
     final summary = """
-📊 LAPORAN TRADING FENNEC PRO 📊
+📊 LAPORAN TRADING SECMON 📊
 ────────────────────────
 📈 Win Rate: ${winRate.toStringAsFixed(1)}%
 🔄 Total Trade: $totalTrades
@@ -40,7 +40,7 @@ class _HistoryTabState extends State<HistoryTab> {
 🔴 Kalah (LOSS): $totalLosses
 💰 Sesi Profit/Loss: $formattedProfit
 
-Sent via Fennec Pro Bot 🚀
+Sent via Secmon Bot 🚀
 """;
 
     Clipboard.setData(ClipboardData(text: summary.trim()));
@@ -55,7 +55,7 @@ Sent via Fennec Pro Bot 🚀
 
   Widget _buildFilterChip(String value, String label) {
     final bool isSelected = _selectedFilter == value;
-    final tradingController = FennecState.trading;
+    final tradingController = SecmonState.trading;
     final themeColor = tradingController.activeAccentColor;
 
     return ChoiceChip(
@@ -90,7 +90,7 @@ Sent via Fennec Pro Bot 🚀
 
   @override
   Widget build(BuildContext context) {
-    final tradingController = FennecState.trading;
+    final tradingController = SecmonState.trading;
     final currencyFormatter = NumberFormat.currency(locale: 'id', symbol: '${tradingController.currencySymbol} ', decimalDigits: 0);
 
     return ListenableBuilder(

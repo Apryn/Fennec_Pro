@@ -10,7 +10,7 @@ class ConfigService {
   static String affiliateUrl = "https://olymptrade-wid.com";
   static String bridgeUrl = "https://raw.githubusercontent.com/Apryn/Fennec_Pro/main/bridge.js";
   static String verificationUrl = ""; // If empty, local verification is used as fallback
-  static String supportUrl = "https://wa.me/628123456789"; // Default fallback support link
+  static String supportUrl = "https://t.me/secmon_support"; // Default fallback Telegram support link
 
   // In-memory cache for dynamic JS bridge script
   static String cachedBridgeScript = "";
@@ -39,10 +39,10 @@ class ConfigService {
         if (config.containsKey('support_url') && config['support_url'] != null) {
           supportUrl = config['support_url'] as String;
         }
-        debugPrint('[FennecConfig] Remote config fetched successfully.');
+        debugPrint('[SecmonConfig] Remote config fetched successfully.');
       }
     } catch (e) {
-      debugPrint('[FennecConfig] Failed to fetch remote config: $e');
+      debugPrint('[SecmonConfig] Failed to fetch remote config: $e');
     }
   }
 
@@ -56,13 +56,13 @@ class ConfigService {
 
       if (response.statusCode == 200) {
         final content = await response.transform(utf8.decoder).join();
-        if (content.trim().isNotEmpty && content.contains('__fennecBridgeLoaded')) {
+        if (content.trim().isNotEmpty && (content.contains('__secmonBridgeLoaded') || content.contains('__fennecBridgeLoaded'))) {
           cachedBridgeScript = content;
-          debugPrint('[FennecConfig] Remote JS bridge fetched successfully.');
+          debugPrint('[SecmonConfig] Remote JS bridge fetched successfully.');
         }
       }
     } catch (e) {
-      debugPrint('[FennecConfig] Failed to fetch remote JS bridge: $e');
+      debugPrint('[SecmonConfig] Failed to fetch remote JS bridge: $e');
     }
   }
 

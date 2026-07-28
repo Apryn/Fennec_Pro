@@ -1,4 +1,4 @@
-package pro.fennec.trading
+package pro.secmon.trading
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -12,7 +12,7 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 
 /**
- * Native Android Foreground Service that keeps the Fennec Pro trading bot
+ * Native Android Foreground Service that keeps the Secmon Pro trading bot
  * alive when the app is running in the background.
  *
  * A Foreground Service requires a persistent notification visible to the user.
@@ -22,7 +22,7 @@ import androidx.core.app.NotificationCompat
 class ForegroundBotService : Service() {
 
     companion object {
-        const val CHANNEL_ID     = "fennec_bot_channel"
+        const val CHANNEL_ID     = "secmon_bot_channel"
         const val NOTIFICATION_ID = 1001
         const val ACTION_START   = "START"
         const val ACTION_STOP    = "STOP"
@@ -93,7 +93,7 @@ class ForegroundBotService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("\uD83E\uDD16 Fennec Pro — Bot Aktif")
+            .setContentTitle("\uD83E\uDD16 Secmon — Bot Aktif")
             .setContentText(statusText)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentIntent(pendingIntent)
@@ -107,7 +107,7 @@ class ForegroundBotService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Fennec Pro Bot",
+                "Secmon Bot",
                 NotificationManager.IMPORTANCE_LOW   // low = no sound, no heads-up
             ).apply {
                 description = "Trading bot sedang aktif memantau pasar."

@@ -60,8 +60,8 @@ class AuthController extends ChangeNotifier {
 
     if (id == "77777") {
       _authError =
-          "WRONG_AFFILIATE: ID terdaftar di tim pusat, tetapi bukan melalui link khusus live ini. "
-          "Silakan daftar ulang melalui link di bio TikTok kami!";
+          "Trader ID belum terverifikasi otomatis. "
+          "Silakan periksa kembali Trader ID Anda atau hubungi Support.";
       notifyListeners();
       return false;
     }
@@ -83,12 +83,12 @@ class AuthController extends ChangeNotifier {
       }
     } catch (e) {
       _isLoading = false;
-      debugPrint('[Fennec] Auth error during remote verification: $e');
+      debugPrint('[Secmon] Auth error during remote verification: $e');
     }
 
     _authError =
-        "ID tidak ditemukan atau belum terdaftar di bawah link afiliasi kami. "
-        "Pastikan Anda mendaftar melalui link di bio TikTok dan hubungi CS / SUPPORT di bawah untuk verifikasi.";
+        "Trader ID tidak terdaftar atau belum terverifikasi. "
+        "Silakan periksa kembali nomor ID Anda atau hubungi Support.";
     notifyListeners();
     return false;
   }

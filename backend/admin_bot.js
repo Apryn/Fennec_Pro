@@ -30,7 +30,7 @@ bot.use(async (ctx, next) => {
   
   if (adminId !== 0 && userId !== adminId) {
     console.log(`[AdminBot] Akses diblokir untuk pengguna ilegal: ${userId} (${ctx.from ? ctx.from.username : "unknown"})`);
-    return ctx.reply("⛔ Akses Ditolak: Anda bukan Administrator resmi Fennec Pro.");
+    return ctx.reply("⛔ Akses Ditolak: Anda bukan Administrator resmi Secmon.");
   }
   return next();
 });
@@ -38,7 +38,7 @@ bot.use(async (ctx, next) => {
 // Perintah /start
 bot.start((ctx) => {
   ctx.reply(
-    "🦊 *Selamat datang di Bot Panel Admin Fennec Pro!*\n\n" +
+    "🤖 *Selamat datang di Bot Panel Admin Secmon!*\n\n" +
     "Gunakan perintah berikut untuk mengelola trader Anda:\n" +
     "📊 `/stats <trader_id>` - Lihat statistik detail trader\n" +
     "🔑 `/whitelist <trader_id>` - Masukkan ID ke database secara manual\n" +
@@ -51,9 +51,9 @@ bot.start((ctx) => {
 
 bot.help((ctx) => {
   ctx.reply(
-    "📋 *Daftar Perintah Admin Fennec Pro:*\n\n" +
+    "📋 *Daftar Perintah Admin Secmon:*\n\n" +
     "📊 `/stats <trader_id>` : Menampilkan persentase win rate, total trade, total profit, dan saldo terakhir trader.\n" +
-    "🔑 `/whitelist <trader_id>` : Membuka akses bot Fennec Pro untuk ID tersebut secara manual.\n" +
+    "🔑 `/whitelist <trader_id>` : Membuka akses bot Secmon untuk ID tersebut secara manual.\n" +
     "🚫 `/blacklist <trader_id>` : Menutup akses/menghapus ID dari daftar aktif.\n" +
     "🔍 `/check <trader_id>` : Mengirim permintaan cek rujukan ke Bot Kingfin secara manual.",
     { parse_mode: "Markdown" }
@@ -166,7 +166,7 @@ bot.command("whitelist", async (ctx) => {
       });
 
     if (error) throw error;
-    ctx.reply(`✅ Sukses mem-whitelist *ID ${traderId}*. Bot Fennec Pro sekarang dapat langsung digunakan oleh ID tersebut.`, { parse_mode: "Markdown" });
+    ctx.reply(`✅ Sukses mem-whitelist *ID ${traderId}*. Bot Secmon sekarang dapat langsung digunakan oleh ID tersebut.`, { parse_mode: "Markdown" });
   } catch (err) {
     ctx.reply(`❌ Gagal mem-whitelist ID: ${err.message}`);
   }
@@ -191,7 +191,7 @@ bot.command("blacklist", async (ctx) => {
       .eq("trader_id", traderId);
 
     if (error) throw error;
-    ctx.reply(`✅ Sukses menghapus *ID ${traderId}* dari database. Akses bot Fennec Pro untuk ID tersebut telah ditutup.`, { parse_mode: "Markdown" });
+    ctx.reply(`✅ Sukses menghapus *ID ${traderId}* dari database. Akses bot Secmon untuk ID tersebut telah ditutup.`, { parse_mode: "Markdown" });
   } catch (err) {
     ctx.reply(`❌ Gagal mem-blacklist ID: ${err.message}`);
   }
@@ -217,9 +217,9 @@ bot.command("check", async (ctx) => {
     const isValid = await verifyTraderIdViaBot(traderId);
 
     if (isValid) {
-      ctx.reply(`🟢 *RESPON VALID*: ID ${traderId} terdaftar di bawah rujukan Anda!`);
+      ctx.reply(`🟢 *VERIFIKASI BERHASIL*: ID ${traderId} aktif terverifikasi.`);
     } else {
-      ctx.reply(`🔴 *RESPON DITOLAK*: ID ${traderId} tidak terdaftar di bawah rujukan Anda atau terjadi timeout.`);
+      ctx.reply(`🔴 *TIDAK TERVERIFIKASI*: ID ${traderId} belum ditemukan atau terjadi timeout.`);
     }
   } catch (err) {
     ctx.reply(`❌ Eror saat menjalankan verifikasi proxy: ${err.message}`);

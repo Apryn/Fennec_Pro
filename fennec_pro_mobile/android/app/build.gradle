@@ -33,7 +33,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "pro.fennec.trading"
+    namespace = "pro.secmon.trading"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "25.1.8937393"
 
@@ -58,7 +58,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "pro.fennec.trading"
+        applicationId = "pro.secmon.trading"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()

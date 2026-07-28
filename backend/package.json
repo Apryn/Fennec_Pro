@@ -1,7 +1,7 @@
 {
-  "name": "fennec-pro-backend",
+  "name": "secmon-pro-backend",
   "version": "1.0.0",
-  "description": "Backend API Server, Telegram Proxy Auto-Forwarder, and Admin Bot for Fennec Pro",
+  "description": "Backend API Server, Telegram Proxy Auto-Forwarder, and Admin Bot for Secmon Pro",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

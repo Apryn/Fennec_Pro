@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../theme/cyber_theme.dart';
 import '../../main.dart';
+import '../../services/background_service.dart';
+import '../../services/config_service.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authController = FennecState.auth;
-    final tradingController = FennecState.trading;
+    final authController = SecmonState.auth;
+    final tradingController = SecmonState.trading;
 
     return ListenableBuilder(
       listenable: authController,
@@ -76,11 +78,38 @@ class ProfileTab extends StatelessWidget {
                       
                       // Profile items
                       _buildDetailRow('Trader ID Olymp Trade', authController.currentTraderId),
-                      _buildBadgeRow('Status Lisensi', 'VIP FENNEC ACCESS'),
-                      _buildDetailRow('Versi Aplikasi', 'Fennec Pro v1.0.0'),
+                      _buildBadgeRow('Status Lisensi', 'VIP SECMON ACCESS'),
+                      _buildDetailRow('Versi Aplikasi', 'Secmon v1.0.0'),
                       _buildDetailRow('Metode Koneksi', 'WebView JS Bridge'),
                       
                       const SizedBox(height: 30),
+                      
+                      // VIP Telegram Group Button
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          BotForegroundService.launchUrl(ConfigService.supportUrl);
+                        },
+                        icon: const Icon(Icons.telegram, size: 20),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: CyberTheme.neonBlue.withOpacity(0.15),
+                          foregroundColor: CyberTheme.neonBlue,
+                          side: const BorderSide(color: CyberTheme.neonBlue, width: 1.5),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                        label: const SizedBox(
+                          width: double.infinity,
+                          child: Text(
+                            'BERGABUNG KE GRUP VIP TELEGRAM',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.5),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       
                       // Deactivation button
                       ElevatedButton(

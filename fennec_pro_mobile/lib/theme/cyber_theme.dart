@@ -23,7 +23,7 @@ class CyberTheme {
       scaffoldBackgroundColor: background,
       primaryColor: neonGreen,
       cardColor: cardBg,
-      dialogTheme: const DialogThemeData(
+      dialogTheme: const DialogTheme(
         backgroundColor: cardBg,
       ),
       textTheme: ThemeData.dark().textTheme.apply(

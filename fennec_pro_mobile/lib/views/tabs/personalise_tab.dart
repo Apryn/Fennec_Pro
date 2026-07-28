@@ -15,7 +15,7 @@ class _PersonaliseTabState extends State<PersonaliseTab> {
 
   @override
   Widget build(BuildContext context) {
-    final tradingController = FennecState.trading;
+    final tradingController = SecmonState.trading;
 
     return ListenableBuilder(
       listenable: tradingController,
@@ -43,7 +43,7 @@ class _PersonaliseTabState extends State<PersonaliseTab> {
               child: ListView(
                 children: [
                   const Text(
-                    'Ubah aksen neon visual dashboard untuk menyesuaikan dengan overlay live stream Anda.',
+                    'Ubah aksen neon visual dashboard sesuai selera dan kenyamanan mata Anda.',
                     style: TextStyle(
                       fontSize: 13,
                       color: CyberTheme.colorTextSecondary,
@@ -135,28 +135,6 @@ class _PersonaliseTabState extends State<PersonaliseTab> {
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // High Contrast Mode Toggle
-                  _buildSectionCard(
-                    title: 'TIKTOK OVERLAY PREVIEW',
-                    child: SwitchListTile(
-                      title: const Text(
-                        'High Contrast Stream Mode',
-                        style: TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: const Text(
-                        'Memperbesar ukuran dan ketebalan teks agar lebih terlihat di layar HP penonton live stream.',
-                        style: TextStyle(fontSize: 11, color: CyberTheme.colorTextMuted, height: 1.4),
-                      ),
-                      value: tradingController.highContrastMode,
-                      activeColor: tradingController.activeAccentColor,
-                      contentPadding: EdgeInsets.zero,
-                      onChanged: (val) {
-                        tradingController.setHighContrast(val);
-                      },
                     ),
                   ),
                 ],

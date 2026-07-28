@@ -44,16 +44,71 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      final trading = FennecState.trading;
+      final trading = SecmonState.trading;
       if (trading.isBotRunning) {
-        debugPrint('[Fennec] App minimized/backgrounded. Stopping bot automatically.');
+        debugPrint('[Secmon] App minimized/backgrounded. Stopping bot automatically.');
         trading.toggleBot();
       }
     }
   }
 
+  void _showPlatformOfflineDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.75),
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: CyberTheme.borderDark, width: 1.0),
+          ),
+          backgroundColor: CyberTheme.cardBg,
+          title: const Row(
+            children: [
+              Icon(Icons.wifi_off_rounded, color: CyberTheme.neonYellow, size: 22),
+              SizedBox(width: 10),
+              Text(
+                'Platform Belum Terhubung',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white),
+              ),
+            ],
+          ),
+          content: const Text(
+            'Halaman platform trading Olymp Trade belum selesai dimuat atau Anda belum login ke akun Olymp Trade Anda.\n\n'
+            'Silakan buka tab PLATFORM WEB untuk melakukan login terlebih dahulu agar eksekusi otomatisasi Bot dapat berjalan.',
+            style: TextStyle(fontSize: 12, color: CyberTheme.colorTextSecondary, height: 1.5),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal', style: TextStyle(color: CyberTheme.colorTextMuted, fontSize: 12)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() {
+                  _currentIndex = 1;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CyberTheme.neonGreen,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text(
+                'BUKA PLATFORM WEB',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _openConfigModal(BuildContext context) {
-    final trading = FennecState.trading;
+    final trading = SecmonState.trading;
     final formatter = NumberFormat.currency(locale: 'id', symbol: '', decimalDigits: 0);
 
     final baseController = TextEditingController(text: formatter.format(trading.baseTrade).trim());
@@ -597,7 +652,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    final trading = FennecState.trading;
+    final trading = SecmonState.trading;
     final currencyFormatter = NumberFormat.currency(locale: 'id', symbol: '', decimalDigits: 0);
 
     return ListenableBuilder(
@@ -674,7 +729,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                 ),
                 const SizedBox(width: 8),
                 const Text(
-                  'FENNEC PRO',
+                  'SECMON',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
@@ -691,13 +746,13 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: CyberTheme.borderDark),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  StatusDot(color: CyberTheme.neonGreen),
-                  SizedBox(width: 6),
+                  StatusDot(color: trading.isPlatformReady ? CyberTheme.neonGreen : CyberTheme.neonRed),
+                  const SizedBox(width: 6),
                   Text(
-                    'Server: Online',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                    trading.isPlatformReady ? 'Platform: Ready' : 'Platform: Offline',
+                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                 ],
               ),
@@ -818,7 +873,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
               // ValueListenableBuilder: hanya widget jam ini yang rebuild setiap detik
               // Sebelumnya seluruh dashboard rebuild setiap detik hanya karena jam!
               child: ValueListenableBuilder<String>(
-                valueListenable: FennecState.trading.liveTimeNotifier,
+                valueListenable: SecmonState.trading.liveTimeNotifier,
                 builder: (_, time, __) => _buildGridCard('Jam Sekarang', time),
               ),
             ),
@@ -936,7 +991,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                       StatusDot(color: CyberTheme.neonRed, glow: false),
                       SizedBox(width: 10),
                       Text(
-                        'Status: Fennec dihentikan.',
+                        'Status: Secmon dihentikan.',
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: CyberTheme.colorTextSecondary),
                       ),
                     ],
@@ -965,7 +1020,13 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton.icon(
-                onPressed: () => trading.toggleBot(),
+                onPressed: () {
+                  if (!trading.isBotRunning && !trading.isPlatformReady) {
+                    _showPlatformOfflineDialog(context);
+                    return;
+                  }
+                  trading.toggleBot();
+                },
                 icon: Icon(
                   trading.isBotRunning ? Icons.square : Icons.play_arrow,
                   size: 16,
@@ -1120,6 +1181,7 @@ class StatusDot extends StatelessWidget {
 }
 
 // Vector mini logo painter for the dashboard header
+// Vector mini logo painter for the Secmon dashboard header (Option 1 S Pulse)
 class HeaderLogoPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -1127,40 +1189,36 @@ class HeaderLogoPainter extends CustomPainter {
     final double h = size.height;
     final center = Offset(w / 2, h / 2);
 
-    final Paint paint = Paint()..style = PaintingStyle.fill;
-    final Paint strokePaint = Paint()
+    final Paint linePaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+      ..strokeWidth = 4.5
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
 
-    // Face boundary triangle (Amber yellow outline, dark background)
-    paint.color = CyberTheme.background;
-    final Path face = Path()
-      ..moveTo(center.dx, h * 0.85)
-      ..lineTo(w * 0.15, h * 0.35)
-      ..lineTo(w * 0.85, h * 0.35)
-      ..close();
-    canvas.drawPath(face, paint);
-    
-    strokePaint.color = CyberTheme.neonYellow;
-    canvas.drawPath(face, strokePaint);
+    final Shader lineShader = LinearGradient(
+      colors: [CyberTheme.neonGreen, CyberTheme.neonBlue],
+      begin: Alignment.topRight,
+      end: Alignment.bottomLeft,
+    ).createShader(Rect.fromLTWH(0, 0, w, h));
 
-    // Muzzle triangle (Solid Neon Green)
-    paint.color = CyberTheme.neonGreen;
-    final Path nose = Path()
-      ..moveTo(center.dx, h * 0.85)
-      ..lineTo(w * 0.30, h * 0.55)
-      ..lineTo(w * 0.70, h * 0.55)
-      ..close();
-    canvas.drawPath(nose, paint);
+    linePaint.shader = lineShader;
 
-    // Forehead accent (Electric Red)
-    paint.color = CyberTheme.neonRed;
-    final Path forehead = Path()
-      ..moveTo(w * 0.40, h * 0.45)
-      ..lineTo(center.dx, h * 0.30)
-      ..lineTo(w * 0.60, h * 0.45)
-      ..close();
-    canvas.drawPath(forehead, paint);
+    // Clean 'S' Pulse Line for mini header
+    final Path sPulse = Path()
+      ..moveTo(w * 0.78, h * 0.25)
+      ..lineTo(w * 0.35, h * 0.25)
+      ..lineTo(w * 0.22, h * 0.46)
+      ..lineTo(center.dx, h * 0.50)
+      ..lineTo(w * 0.78, h * 0.54)
+      ..lineTo(w * 0.65, h * 0.75)
+      ..lineTo(w * 0.22, h * 0.75);
+
+    canvas.drawPath(sPulse, linePaint);
+
+    final Paint dotPaint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = CyberTheme.neonGreen;
+    canvas.drawCircle(Offset(center.dx, h * 0.50), 2.5, dotPaint);
   }
 
   @override

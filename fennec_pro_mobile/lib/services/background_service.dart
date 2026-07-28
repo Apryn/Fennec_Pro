@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 /// Uses a native MethodChannel to communicate with a lightweight Kotlin
 /// ForegroundBotService — no extra Flutter package required.
 class BotForegroundService {
-  static const _channel = MethodChannel('com.fennecpro/foreground_service');
+  static const _channel = MethodChannel('com.secmonpro/foreground_service');
 
   /// Initialize — no-op in this implementation (native side handles init)
   static void init() {

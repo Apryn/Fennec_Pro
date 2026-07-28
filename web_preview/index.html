@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FENNEC PRO - Web Preview Simulator</title>
+    <title>SECMON - Web Preview Simulator</title>
     <!-- Google Fonts: Inter & Space Grotesk for digital metrics -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,8 +14,8 @@
     <div class="simulator-container">
         <!-- Floating Info Header for the Developer/User outside the phone -->
         <div class="web-info-panel">
-            <h1>FENNEC PRO <span class="badge">SIMULATOR PREVIEW</span></h1>
-            <p>Ini adalah simulator interaktif yang meniru visual dan logika bisnis aplikasi mobile Fennec Pro.</p>
+            <h1>SECMON <span class="badge">SIMULATOR PREVIEW</span></h1>
+            <p>Ini adalah simulator interaktif yang meniru visual dan logika bisnis aplikasi mobile Secmon.</p>
             <div class="instructions">
                 <h3>💡 Panduan Pengujian Trader ID:</h3>
                 <ul>
@@ -62,10 +62,10 @@
                                 </defs>
                             </svg>
                         </div>
-                        <h2 class="auth-title">FENNEC PRO</h2>
+                        <h2 class="auth-title">SECMON</h2>
                         <div class="auth-subtitle">SECURE ACTIVATION</div>
                         
-                        <p class="auth-desc">Masukkan Trader ID Olymp Trade Anda untuk mengaktifkan fitur otomatisasi Fennec Pro.</p>
+                        <p class="auth-desc">Masukkan Trader ID Olymp Trade Anda untuk mengaktifkan fitur otomatisasi Secmon.</p>
                         
                         <div class="form-group">
                             <label for="trader-id-input">TRADER ID OLYMP TRADE</label>
@@ -101,11 +101,11 @@
                         </button>
 
                         <button id="contact-support-btn" class="btn-outlined-blue ripple" onclick="openSupportLink()">
-                            HUBUNGI CS / SUPPORT
+                            HUBUNGI CS / SUPPORT (TELEGRAM)
                         </button>
 
                         <div class="auth-footer-info">
-                            Powered by Fennec Engine v4.2 • Secure SSL
+                            Powered by Secmon Engine v4.2 • Secure SSL
                         </div>
                     </div>
                 </div>
@@ -121,15 +121,14 @@
                             <div class="app-header">
                                 <div class="header-left">
                                     <svg class="header-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <polygon points="50,85 15,35 85,35" fill="#131722" stroke="#ffb300" stroke-width="3" />
-                                        <polygon points="50,85 30,55 70,55" fill="#00c853" />
-                                        <polygon points="40,45 50,30 60,45" fill="#ff3d00" />
+                                        <path d="M78 25 L35 25 L22 46 L50 50 L78 54 L65 75 L22 75" stroke="#00c853" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+                                        <circle cx="50" cy="50" r="6" fill="#00c853" />
                                     </svg>
-                                    <span class="header-title">FENNEC PRO</span>
+                                    <span class="header-title">SECMON</span>
                                 </div>
                                 <div class="header-right">
-                                    <span class="pulse-dot"></span>
-                                    <span class="server-status">Server: Online</span>
+                                    <span id="header-pulse-dot" class="pulse-dot offline"></span>
+                                    <span id="platform-status-text" class="server-status">Platform: Offline</span>
                                 </div>
                             </div>
 
@@ -163,7 +162,7 @@
                             <!-- Status Banner -->
                             <div id="status-banner" class="status-banner active">
                                 <span class="status-indicator-icon animate-pulse-glow-green"></span>
-                                <span id="status-banner-text" class="status-text">Status: Fennec sedang bekerja...</span>
+                                <span id="status-banner-text" class="status-text">Status: Secmon sedang bekerja...</span>
                             </div>
 
                             <!-- Simulation Controls -->
@@ -239,7 +238,7 @@
                                 </div>
                                 <div class="profile-detail-item">
                                     <span class="profile-label">Status Lisensi</span>
-                                    <span class="profile-badge-active">VIP FENNEC ACCESS</span>
+                                    <span class="profile-badge-active">VIP SECMON ACCESS</span>
                                 </div>
                                 <div class="profile-detail-item">
                                     <span class="profile-label">Affiliate Sub-ID</span>
@@ -282,17 +281,6 @@
                                 <div class="theme-option-group">
                                     <label class="personalise-label">GLOW STRENGTH</label>
                                     <input type="range" id="glow-slider" class="range-slider" min="0" max="20" value="8">
-                                </div>
-
-                                <div class="theme-option-group">
-                                    <label class="personalise-label">TIKTOK OVERLAY PREVIEW</label>
-                                    <div class="toggle-container">
-                                        <span>High Contrast Stream Mode</span>
-                                        <label class="switch">
-                                            <input type="checkbox" id="contrast-toggle">
-                                            <span class="slider-round"></span>
-                                        </label>
-                                    </div>
                                 </div>
                             </div>
                         </div>

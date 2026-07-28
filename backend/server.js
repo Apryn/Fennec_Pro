@@ -25,7 +25,7 @@ if (supabaseUrl && supabaseKey) {
   console.warn("Penyimpanan riwayat transaksi dan whitelist lokal dinonaktifkan.");
 }
 
-// Endpoint 1: Verifikasi Trader ID (Aktivasi Bot Fennec Pro)
+// Endpoint 1: Verifikasi Trader ID (Aktivasi Bot Secmon Pro)
 app.get("/verify-trader", async (req, res) => {
   const traderId = req.query.traderId;
 
@@ -134,7 +134,7 @@ async function start() {
   require("./admin_bot");
 
   app.listen(PORT, () => {
-    console.log(`🚀 Server Fennec Pro berjalan di port ${PORT}`);
+    console.log(`🚀 Server Secmon Pro berjalan di port ${PORT}`);
   });
 }
 

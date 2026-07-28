@@ -1,6 +1,6 @@
-﻿# 🦊 FENNEC PRO - Premium Trading Bot Assistant
+# ⚡ SECMON - Premium Trading Bot Assistant
 
-**FENNEC PRO** adalah aplikasi asisten otomatisasi trading premium (*lead-magnet app*) yang dirancang khusus untuk para trader finansial dan live streamer. Aplikasi ini dilengkapi dengan visualisasi **Cyber Dark Mode** berkinerja tinggi, logika manajemen risiko otomatis, dan sistem pengaman **Anti-Ban (Anti-Deteksi)** saat terhubung dengan platform market Olymp Trade.
+**SECMON** adalah aplikasi asisten otomatisasi trading premium (*lead-magnet app*) yang dirancang khusus untuk para trader finansial dan live streamer. Aplikasi ini dilengkapi dengan visualisasi **Cyber Dark Mode** berkinerja tinggi, logika manajemen risiko otomatis, dan sistem pengaman **Anti-Ban (Anti-Deteksi)** saat terhubung dengan platform market Olymp Trade.
 
 ---
 
@@ -11,7 +11,7 @@ Repositori ini terdiri dari dua komponen utama:
 1. **`fennec_pro_mobile/` (Flutter Mobile App)**:
    Projek cross-platform Flutter yang siap dikompilasi untuk Android (`.apk`) dan iOS. Berisi integrasi WebView platform trading, bi-directional JS bridge, dan manajemen risiko Martingale.
 2. **`web_preview/` (Web Preview Simulator)**:
-   Simulator interaktif berbasis HTML/CSS/JS yang meniru visual dan logika bisnis aplikasi mobile Fennec Pro secara presisi untuk diuji langsung di browser tanpa perlu compiler SDK.
+   Simulator interaktif berbasis HTML/CSS/JS yang meniru visual dan logika bisnis aplikasi mobile Secmon Pro secara presisi untuk diuji langsung di browser tanpa perlu compiler SDK.
 
 ---
 

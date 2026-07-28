@@ -15,17 +15,17 @@ void main() {
   ConfigService.fetchConfig().then((_) {
     ConfigService.fetchBridgeScript();
   });
-  runApp(const FennecProApp());
+  runApp(const SecmonApp());
 }
 
-class FennecProApp extends StatefulWidget {
-  const FennecProApp({super.key});
+class SecmonApp extends StatefulWidget {
+  const SecmonApp({super.key});
 
   @override
-  State<FennecProApp> createState() => _FennecProAppState();
+  State<SecmonApp> createState() => _SecmonAppState();
 }
 
-class _FennecProAppState extends State<FennecProApp> {
+class _SecmonAppState extends State<SecmonApp> {
   late final AuthController _authController;
   late final TradingController _tradingController;
 
@@ -35,7 +35,7 @@ class _FennecProAppState extends State<FennecProApp> {
     _authController = AuthController();
     _tradingController = TradingController();
     // Store references in custom inherited provider or global accessors
-    FennecState.init(_authController, _tradingController);
+    SecmonState.init(_authController, _tradingController);
   }
 
   @override
@@ -51,7 +51,7 @@ class _FennecProAppState extends State<FennecProApp> {
       listenable: _authController,
       builder: (context, child) {
         return MaterialApp(
-          title: 'FENNEC PRO',
+          title: 'SECMON',
           debugShowCheckedModeBanner: false,
           theme: CyberTheme.themeData,
           home: _authController.isActivated
@@ -64,7 +64,7 @@ class _FennecProAppState extends State<FennecProApp> {
 }
 
 // Simple Service Locator / State Manager to avoid third-party provider complexity
-class FennecState {
+class SecmonState {
   static late AuthController auth;
   static late TradingController trading;
 

@@ -1,4 +1,4 @@
-package pro.fennec.trading
+package pro.secmon.trading
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -9,7 +9,7 @@ import android.net.Uri
 
 class MainActivity : FlutterActivity() {
 
-    private val CHANNEL = "com.fennecpro/foreground_service"
+    private val CHANNEL = "com.secmonpro/foreground_service"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)

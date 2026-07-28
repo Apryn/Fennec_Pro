@@ -148,6 +148,9 @@ class TradingController extends ChangeNotifier {
   int get takeProfitLimit             => _takeProfitLimit;
   bool get isDemoWallet               => _isDemoWallet;
 
+  bool _isPlatformLoaded = false;
+  DateTime? _lastPlatformActivity;
+
   bool get isAutoTradingActive        => _isAutoTradingActive;
   int get minimumBalanceGuard         => _minimumBalanceGuard;
   int get currentAccountBalance       => _currentAccountBalance;
@@ -158,6 +161,18 @@ class TradingController extends ChangeNotifier {
   String get platformUrl              => _platformUrl;
   String get signalMode               => _signalMode;
   String get currencySymbol           => _currencySymbol;
+  bool get isPlatformLoaded           => _isPlatformLoaded;
+  bool get isPlatformReady            =>
+      _isPlatformLoaded ||
+      _currentAccountBalance > 0 ||
+      (_lastPlatformActivity != null &&
+          DateTime.now().difference(_lastPlatformActivity!).inSeconds < 120);
+
+  void markPlatformLoaded() {
+    _isPlatformLoaded = true;
+    _lastPlatformActivity = DateTime.now();
+    notifyListeners();
+  }
 
   void setLastExecutedSignalId(int val) {
     _lastExecutedSignalId = val;
@@ -167,7 +182,7 @@ class TradingController extends ChangeNotifier {
     if (asset.isNotEmpty && _activeAsset != asset) {
       _activeAsset = asset;
       _priceTicks.clear();
-      notifyListeners();
+      markPlatformLoaded();
     }
   }
 
@@ -176,6 +191,8 @@ class TradingController extends ChangeNotifier {
     if (_priceTicks.length > 30) {
       _priceTicks.removeAt(0);
     }
+    _isPlatformLoaded = true;
+    _lastPlatformActivity = DateTime.now();
   }
   int get tradeDurationSeconds        => _tradeDurationSeconds;
 
@@ -471,7 +488,7 @@ class TradingController extends ChangeNotifier {
       if (_isBotRunning && _isAutoTradingActive) {
         if (_isTradePending) {
           _pendingTradeSecondsActive++;
-          final maxWait = _tradeDurationSeconds + 8; // 8 seconds buffer is safe for slower balance updates or delays
+          final maxWait = _tradeDurationSeconds == 5 ? 8 : _tradeDurationSeconds + 8; // 8 seconds buffer is safe for slower balance updates or delays
           if (_pendingTradeSecondsActive >= maxWait) {
             // Deteksi hasil secara deterministik lewat saldo jika WebView tidak mengirimkan event
             final isWin = _currentAccountBalance > _startBalanceOfTrade;
@@ -633,6 +650,8 @@ class TradingController extends ChangeNotifier {
     _currentAccountBalance = val;
     _isDemoWallet = isDemo;
     _currencySymbol = currency;
+    _isPlatformLoaded = true;
+    _lastPlatformActivity = DateTime.now();
 
     if (walletTypeChanged) {
       _isTradePending = false;
@@ -820,7 +839,7 @@ class TradingController extends ChangeNotifier {
 
     // Log trade dynamically to database
     ConfigService.logTrade(
-      traderId: FennecState.auth.currentTraderId,
+      traderId: SecmonState.auth.currentTraderId,
       asset: _activeAsset,
       direction: _lastSignalDirection ?? "UNKNOWN",
       nominal: _pendingTradeSize,
@@ -835,7 +854,7 @@ class TradingController extends ChangeNotifier {
     // ── Aktifkan cooldown ─────────────────────────────────────────────────
     // Memberi waktu event WebView lama (RESULT_DETECTED yang terlambat) untuk
     // settle sebelum trade berikutnya dibuka. Ini mencegah phantom WIN/LOSS.
-    _postResolveCooldown = _kPostResolveCooldownSeconds;
+    _postResolveCooldown = _tradeDurationSeconds == 5 ? 0 : _kPostResolveCooldownSeconds;
 
     _updateForegroundNotification();
     _savePrefsDebounced();

@@ -1,5 +1,5 @@
-name: fennec_pro_mobile
-description: "Fennec Pro - Premium Trading Bot Assistant & Lead-Magnet App"
+name: secmon_pro_mobile
+description: "Secmon - Premium Trading Bot Assistant & Lead-Magnet App"
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.5
-  google_fonts: ^8.2.0
+  google_fonts: ^6.1.0
   intl: ^0.18.0
   webview_flutter: ^4.4.2
   shared_preferences: ^2.2.3
@@ -34,4 +34,3 @@ flutter_launcher_icons:
   image_path: "assets/icons/icon.png"
   min_sdk_android: 21
   adaptive_icon_background: "#131722"
-  adaptive_icon_foreground: "assets/icons/icon.png"
