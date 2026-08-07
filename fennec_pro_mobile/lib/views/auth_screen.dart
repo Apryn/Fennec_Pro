@@ -372,7 +372,7 @@ class SecmonLogoPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    final Shader lineShader = LinearGradient(
+    final Shader lineShader = const LinearGradient(
       colors: [CyberTheme.neonGreen, CyberTheme.neonBlue],
       begin: Alignment.topRight,
       end: Alignment.bottomLeft,

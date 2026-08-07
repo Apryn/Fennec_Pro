@@ -5,7 +5,10 @@ const { createClient } = require("@supabase/supabase-js");
 dotenv.config();
 
 const botToken = process.env.TELEGRAM_ADMIN_BOT_TOKEN || "";
-const adminId = parseInt(process.env.ADMIN_TELEGRAM_ID || "0");
+const adminIds = (process.env.ADMIN_TELEGRAM_ID || "")
+  .split(",")
+  .map(id => parseInt(id.trim()))
+  .filter(id => !isNaN(id) && id !== 0);
 const supabaseUrl = process.env.SUPABASE_URL || "";
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || "";
 
@@ -28,7 +31,7 @@ if (supabaseUrl && supabaseKey) {
 bot.use(async (ctx, next) => {
   const userId = ctx.from ? ctx.from.id : null;
   
-  if (adminId !== 0 && userId !== adminId) {
+  if (adminIds.length > 0 && !adminIds.includes(userId)) {
     console.log(`[AdminBot] Akses diblokir untuk pengguna ilegal: ${userId} (${ctx.from ? ctx.from.username : "unknown"})`);
     return ctx.reply("⛔ Akses Ditolak: Anda bukan Administrator resmi Secmon.");
   }

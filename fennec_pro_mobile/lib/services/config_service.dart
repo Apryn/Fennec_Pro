@@ -7,10 +7,10 @@ class ConfigService {
   static const String _configUrl = "https://raw.githubusercontent.com/Apryn/Fennec_Pro/main/config.json";
 
   // Configuration variables with safe default values
-  static String affiliateUrl = "https://olymptrade-wid.com";
-  static String bridgeUrl = "https://raw.githubusercontent.com/Apryn/Fennec_Pro/main/bridge.js";
-  static String verificationUrl = ""; // If empty, local verification is used as fallback
-  static String supportUrl = "https://t.me/secmon_support"; // Default fallback Telegram support link
+  static String affiliateUrl = "https://olymptrade-wid.com/id-id/?affiliate_id=2006744&subid1=";
+  static String bridgeUrl = "https://motodoct.com/secmon/bridge.js";
+  static String verificationUrl = "https://motodoct.com/secmon/verify-trader";
+  static String supportUrl = "https://t.me/Secmonbott";
 
   // In-memory cache for dynamic JS bridge script
   static String cachedBridgeScript = "";

@@ -75,6 +75,9 @@ class _WebTabState extends State<WebTab> {
             }
           } else if (eventType == 'SELECTOR_ERROR') {
             debugPrint('[Secmon] ⚠️ Button selector failed for direction: ${parts[1]}. Update selectors in web_tab.dart.');
+          } else if (eventType == 'TRADER_ID_CHECK') {
+            final extractedId = parts[1];
+            SecmonState.trading.updateTraderIdCheck(extractedId);
           }
         },
       )
@@ -765,6 +768,111 @@ class _WebTabState extends State<WebTab> {
       console.log("Secmon: Injected single " + direction + " click at (" + Math.round(clickX) + ", " + Math.round(clickY) + ")");
     }, randomDelay);
   };
+
+  // 5. Monitor Logged In Trader ID to prevent account switching loophole
+  let _lastSentTraderId = "";
+  function checkTraderId() {
+    let extractedId = null;
+
+    // A. Scan localStorage for ID values
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.toLowerCase().includes('user') || key.toLowerCase().includes('profile') || key.toLowerCase().includes('auth') || key.toLowerCase().includes('account') || key.toLowerCase().includes('state'))) {
+          const val = localStorage.getItem(key);
+          if (val) {
+            // Check if it's a direct digit string
+            if (/^\d{5,15}$/.test(val.trim())) {
+              extractedId = val.trim();
+              break;
+            }
+            // Check via regex on JSON string
+            const match = val.match(/(?:"id"|"userId"|"user_id"|"traderId"|"trader_id"|"account_id"|"accountId"|"cid")\s*:\s*"?(\d{5,15})"?/i);
+            if (match && match[1]) {
+              extractedId = match[1];
+              break;
+            }
+          }
+        }
+      }
+    } catch(e) {}
+
+    // B. Scan window objects
+    if (!extractedId) {
+      try {
+        const objects = [window.user, window.profile, window.currentUser, window.state];
+        for (let obj of objects) {
+          if (obj && typeof obj === 'object') {
+            const id = obj.id || obj.userId || obj.user_id || obj.traderId || obj.trader_id || obj.account_id || obj.accountId || obj.cid;
+            if (id && /^\d{5,15}$/.test(id.toString().trim())) {
+              extractedId = id.toString().trim();
+              break;
+            }
+          }
+        }
+      } catch(e) {}
+    }
+
+    // C. Scan cookies
+    if (!extractedId) {
+      try {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+          const parts = cookie.split('=');
+          const name = parts[0].trim().toLowerCase();
+          const val = parts[1] ? parts[1].trim() : '';
+          if (name.includes('userid') || name.includes('traderid') || name.includes('user_id') || name.includes('cid')) {
+            if (/^\d{5,15}$/.test(val)) {
+              extractedId = val;
+              break;
+            }
+          }
+        }
+      } catch(e) {}
+    }
+
+    // D. Scan DOM elements
+    if (!extractedId) {
+      try {
+        const textElements = document.querySelectorAll('span, div, p, a, h3, h4, li');
+        for (let el of textElements) {
+          if (el.children.length === 0) {
+            const txt = el.textContent || "";
+            const match = txt.match(/(?:id|trader\s*id|user\s*id|client\s*id)[:\s]+(\d{5,15})/i);
+            if (match && match[1]) {
+              extractedId = match[1].trim();
+              break;
+            }
+          }
+        }
+      } catch(e) {}
+    }
+
+    // E. Scan sidebar / drawers specifically if open
+    if (!extractedId) {
+      try {
+        const sidebar = document.querySelector('[class*="profile"], [class*="sidebar"], [class*="menu"], [class*="drawer"], [class*="modal"]');
+        if (sidebar) {
+          const match = sidebar.textContent.match(/(?:id|trader\s*id|user\s*id|client\s*id)[:\s]+(\d{5,15})/i);
+          if (match && match[1]) {
+            extractedId = match[1].trim();
+          } else {
+            const numbers = sidebar.textContent.match(/\b\d{5,15}\b/g);
+            if (numbers && numbers.length > 0) {
+              extractedId = numbers[0].trim();
+            }
+          }
+        }
+      } catch(e) {}
+    }
+
+    if (extractedId && extractedId !== _lastSentTraderId) {
+      _lastSentTraderId = extractedId;
+      SecmonBridge.postMessage("TRADER_ID_CHECK:" + extractedId);
+    }
+  }
+
+  setInterval(checkTraderId, 2500);
 })();
 """;
     final String scriptToInject = ConfigService.cachedBridgeScript.isNotEmpty

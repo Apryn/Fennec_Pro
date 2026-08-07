@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
 const { initClient, verifyTraderIdViaBot } = require("./auto_forwarder");
 
@@ -11,6 +12,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/bridge.js', express.static(path.join(__dirname, 'bridge.js')));
 
 // Inisialisasi Klien Supabase
 const supabaseUrl = process.env.SUPABASE_URL || "";
@@ -18,7 +20,9 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABAS
 let supabase = null;
 
 if (supabaseUrl && supabaseKey) {
-  supabase = createClient(supabaseUrl, supabaseKey);
+  supabase = createClient(supabaseUrl, supabaseKey, {
+    realtime: { disabled: true }
+  });
   console.log("✅ Supabase Client terinisialisasi.");
 } else {
   console.warn("⚠️ SUPABASE_URL atau SUPABASE_KEY tidak ditemukan di berkas .env!");
@@ -35,7 +39,7 @@ app.get("/verify-trader", async (req, res) => {
 
   const cleanId = traderId.trim();
 
-  // 1. Cek di Database Supabase terlebih dahulu
+  // 1. Cek di Database Supabase (Strict Admin Approval Mode)
   if (supabase) {
     try {
       const { data, error } = await supabase
@@ -45,46 +49,22 @@ app.get("/verify-trader", async (req, res) => {
         .single();
 
       if (data && data.status === "active") {
-        console.log(`[Server] ID ${cleanId} ditemukan di database (Status: Active)`);
+        console.log(`[Server] ID ${cleanId} terverifikasi oleh Admin (Status: Active)`);
         return res.json({ active: true, status: "success", source: "database" });
       }
     } catch (dbErr) {
-      console.log(`[Server] ID ${cleanId} belum ada di database atau database error: ${dbErr.message}`);
+      console.log(`[Server] ID ${cleanId} belum diaktivasi oleh Admin: ${dbErr.message}`);
     }
   }
 
-  // 2. Jika tidak ada di DB, gunakan Telegram Auto-Forwarder untuk tanya ke Bot Kingfin
-  const isValid = await verifyTraderIdViaBot(cleanId);
-
-  if (isValid) {
-    console.log(`[Server] ID ${cleanId} terverifikasi valid via Kingfin Bot Telegram!`);
-    
-    // Simpan ke database Supabase agar verifikasi berikutnya instan
-    if (supabase) {
-      try {
-        const { error } = await supabase
-          .from("affiliate_traders")
-          .insert({
-            trader_id: cleanId,
-            status: "active",
-            activated_at: new Date().toISOString()
-          });
-        
-        if (error) {
-          console.error(`[Server] Gagal menyimpan ID ${cleanId} ke database:`, error.message);
-        } else {
-          console.log(`[Server] ID ${cleanId} sukses disimpan ke database.`);
-        }
-      } catch (insertErr) {
-        console.error(`[Server] Gagal memasukkan ID ke database: ${insertErr.message}`);
-      }
-    }
-    
-    return res.json({ active: true, status: "success", source: "telegram_bot" });
-  } else {
-    console.log(`[Server] ID ${cleanId} ditolak oleh Kingfin Bot (bukan referral atau bot tidak merespons).`);
-    return res.json({ active: false, status: "failed", error: "not_referral_or_timeout" });
-  }
+  // Jika belum di-whitelist oleh Admin
+  console.log(`[Server] ID ${cleanId} ditolak — belum terverifikasi oleh Admin.`);
+  return res.json({
+    active: false,
+    status: "failed",
+    error: "belum_terverifikasi",
+    message: "Trader ID belum terverifikasi. Silakan hubungi Customer Service (@Secmonbott) untuk aktivasi."
+  });
 });
 
 // Endpoint 2: Catat Transaksi (Trade Logging dari Aplikasi HP)

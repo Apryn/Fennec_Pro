@@ -123,6 +123,12 @@ class TradingController extends ChangeNotifier {
   bool _prefsLoaded = false;
   bool get prefsLoaded => _prefsLoaded;
 
+  bool _isTraderIdMismatch = false;
+  String _currentExtractedTraderId = "";
+
+  bool get isTraderIdMismatch         => _isTraderIdMismatch;
+  String get currentExtractedTraderId => _currentExtractedTraderId;
+
   // Getters
   int get profit                      => _profit;
   int get baseTrade                   => _baseTrade;
@@ -564,6 +570,10 @@ class TradingController extends ChangeNotifier {
   // ─── Bot Control ─────────────────────────────────────────────────────────────
 
   void toggleBot() {
+    if (!_isBotRunning && _isTraderIdMismatch) {
+      debugPrint('[Secmon] ⚠️ Blocked starting bot due to Trader ID mismatch');
+      return;
+    }
     _isBotRunning = !_isBotRunning;
     if (_isBotRunning) {
       _profit                = 0;
@@ -716,6 +726,32 @@ class TradingController extends ChangeNotifier {
     }
     debugPrint('[Fennec] ${isDraw ? "🟡 DRAW" : (isWin ? "🟢 WIN" : "🔴 LOSS")} resolved via WebView RESULT_DETECTED');
     _resolvePendingTrade(isWin: isWin, isDraw: isDraw);
+  }
+
+  void updateTraderIdCheck(String extractedId) {
+    final cleanId = extractedId.trim();
+    if (cleanId.isEmpty) return;
+
+    _currentExtractedTraderId = cleanId;
+    final verifiedId = SecmonState.auth.currentTraderId;
+
+    if (cleanId != verifiedId) {
+      if (!_isTraderIdMismatch) {
+        _isTraderIdMismatch = true;
+        // Stop the bot immediately!
+        if (_isBotRunning) {
+          _isBotRunning = false;
+          if (_isTradePending) {
+            _resolvePendingTrade(isWin: false);
+          }
+          BotForegroundService.keepScreenOn(false);
+          BotForegroundService.stopService();
+        }
+      }
+    } else {
+      _isTraderIdMismatch = false;
+    }
+    notifyListeners();
   }
 
   // ─── Trade Resolution — Inti Logika Martingale ────────────────────────────────

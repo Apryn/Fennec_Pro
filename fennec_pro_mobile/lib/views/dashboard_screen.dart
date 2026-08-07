@@ -714,9 +714,12 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
   }
 
   Widget _buildHomeDashboard(BuildContext context, TradingController trading, NumberFormat formatter) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    final isMismatch = trading.isTraderIdMismatch;
+    return Stack(
       children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
         // App header widget
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1101,8 +1104,100 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
           ),
         ],
       ],
-    );
-  }
+    ),
+    if (isMismatch)
+      Positioned.fill(
+        child: Container(
+          color: Colors.black.withOpacity(0.95),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: CyberTheme.neonRed,
+                size: 72,
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'TRADER ID TIDAK SESUAI',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: 1.0,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Akun Olymp Trade yang terdeteksi di tab Web tidak cocok dengan Trader ID yang terverifikasi pada aplikasi ini.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: CyberTheme.colorTextSecondary,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E222B),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: CyberTheme.borderDark),
+                ),
+                child: Column(
+                  children: [
+                    _buildMismatchRow('ID Terverifikasi', SecmonState.auth.currentTraderId, CyberTheme.neonGreen),
+                    const SizedBox(height: 8),
+                    const Divider(color: CyberTheme.borderDark, height: 1),
+                    const SizedBox(height: 8),
+                    _buildMismatchRow('ID Terdeteksi', trading.currentExtractedTraderId, CyberTheme.neonRed),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _currentIndex = 2;
+                  });
+                },
+                icon: const Icon(Icons.language, color: Colors.black, size: 16),
+                label: const Text('BUKA TAMPILAN WEB'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: CyberTheme.neonYellow,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+Widget _buildMismatchRow(String label, String value, Color valueColor) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(fontSize: 10, color: CyberTheme.colorTextMuted),
+      ),
+      Text(
+        value,
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: valueColor),
+      ),
+    ],
+  );
+}
 
   Widget _buildMiniStat(String label, String value, Color valueColor) {
     return Column(
@@ -1195,7 +1290,7 @@ class HeaderLogoPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    final Shader lineShader = LinearGradient(
+    final Shader lineShader = const LinearGradient(
       colors: [CyberTheme.neonGreen, CyberTheme.neonBlue],
       begin: Alignment.topRight,
       end: Alignment.bottomLeft,
