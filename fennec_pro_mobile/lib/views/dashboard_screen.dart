@@ -909,7 +909,101 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
+
+        // Koala Pro Style Login & Activation Cards
+        if (!trading.isPlatformReady)
+          Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: CyberTheme.neonYellow.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: CyberTheme.neonYellow.withOpacity(0.4)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.lock_outline_rounded, color: CyberTheme.neonYellow, size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text(
+                        'Platform Belum Terhubung',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Silakan login di platform Olymp Trade untuk mengaktifkan bot.',
+                        style: TextStyle(fontSize: 10, color: CyberTheme.colorTextSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () => setState(() => _currentIndex = 2),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CyberTheme.neonYellow,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('LOGIN WEB', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          )
+        else if (SecmonState.auth.currentTraderId.isEmpty || SecmonState.auth.currentTraderId != trading.currentExtractedTraderId)
+          Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: CyberTheme.neonGreen.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: CyberTheme.neonGreen.withOpacity(0.4)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.verified_user_outlined, color: CyberTheme.neonGreen, size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Akun Terdeteksi: ID ${trading.currentExtractedTraderId.isNotEmpty ? trading.currentExtractedTraderId : 'Memuat...'}',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Klik Aktivasi untuk mengikat lisensi ke akun Olymp Trade ini.',
+                        style: TextStyle(fontSize: 10, color: CyberTheme.colorTextSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (trading.currentExtractedTraderId.isNotEmpty) {
+                      await SecmonState.auth.bindAndActivateTrader(trading.currentExtractedTraderId);
+                    } else {
+                      _showActivationModal(context);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CyberTheme.neonGreen,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('AKTIVASI', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          ),
 
         // Main Metrics Card (Rp Counter)
         Container(

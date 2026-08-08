@@ -93,6 +93,17 @@ class AuthController extends ChangeNotifier {
     return false;
   }
 
+  Future<bool> bindAndActivateTrader(String id) async {
+    final cleanId = id.trim();
+    if (cleanId.isEmpty) return false;
+    _isActivated = true;
+    _currentTraderId = cleanId;
+    _authError = null;
+    await _saveSession();
+    notifyListeners();
+    return true;
+  }
+
   /// Deactivate and clear all persisted credentials
   void deactivate() async {
     _isActivated = false;
