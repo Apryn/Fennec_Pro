@@ -109,74 +109,98 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
 
   void _showActivationModal(BuildContext context) {
     final textController = TextEditingController();
+    String? errorText;
+
     showDialog(
       context: context,
       barrierColor: Colors.black.withOpacity(0.75),
       builder: (dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-            side: const BorderSide(color: CyberTheme.neonGreen, width: 1.0),
-          ),
-          backgroundColor: CyberTheme.cardBg,
-          title: const Row(
-            children: [
-              Icon(Icons.verified_user_outlined, color: CyberTheme.neonGreen, size: 22),
-              SizedBox(width: 10),
-              Text(
-                'Aktivasi Robot Trading',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: const BorderSide(color: CyberTheme.neonGreen, width: 1.0),
               ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Masukkan Trader ID Olymp Trade Anda untuk mengikat lisensi & mengaktifkan bot:',
-                style: TextStyle(fontSize: 12, color: CyberTheme.colorTextSecondary, height: 1.4),
+              backgroundColor: CyberTheme.cardBg,
+              title: const Row(
+                children: [
+                  Icon(Icons.verified_user_outlined, color: CyberTheme.neonGreen, size: 22),
+                  SizedBox(width: 10),
+                  Text(
+                    'Aktivasi Robot Trading',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: textController,
-                keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
-                decoration: InputDecoration(
-                  hintText: 'Contoh: 12345678',
-                  hintStyle: const TextStyle(color: CyberTheme.colorTextMuted, fontSize: 12),
-                  fillColor: Colors.white.withOpacity(0.05),
-                  filled: true,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Masukkan Trader ID Olymp Trade Anda untuk mengikat lisensi & mengaktifkan bot:',
+                    style: TextStyle(fontSize: 12, color: CyberTheme.colorTextSecondary, height: 1.4),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: textController,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: 'Contoh: 12345678',
+                      hintStyle: const TextStyle(color: CyberTheme.colorTextMuted, fontSize: 12),
+                      fillColor: Colors.white.withOpacity(0.05),
+                      filled: true,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                    ),
+                  ),
+                  if (errorText != null) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      errorText!,
+                      style: const TextStyle(color: CyberTheme.neonRed, fontSize: 11, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Batal', style: TextStyle(color: CyberTheme.colorTextMuted, fontSize: 12)),
                 ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Batal', style: TextStyle(color: CyberTheme.colorTextMuted, fontSize: 12)),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final id = textController.text.trim();
-                if (id.isNotEmpty) {
-                  await SecmonState.auth.activate(id);
-                  if (context.mounted) Navigator.pop(dialogContext);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: CyberTheme.neonGreen,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: const Text(
-                'AKTIVASI',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-              ),
-            ),
-          ],
+                ElevatedButton(
+                  onPressed: () async {
+                    final id = textController.text.trim();
+                    if (id.isEmpty) {
+                      setModalState(() {
+                        errorText = "Trader ID tidak boleh kosong.";
+                      });
+                      return;
+                    }
+                    final extracted = SecmonState.trading.currentExtractedTraderId;
+                    if (extracted.isNotEmpty && extracted != id) {
+                      setModalState(() {
+                        errorText = "Trader ID ($id) tidak cocok dengan akun Olymp Trade yang aktif di Web ($extracted).";
+                      });
+                      return;
+                    }
+                    await SecmonState.auth.activate(id);
+                    if (context.mounted) Navigator.pop(dialogContext);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CyberTheme.neonGreen,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text(
+                    'AKTIVASI',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -1148,16 +1172,16 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
               child: ElevatedButton.icon(
                 onPressed: () {
                   if (!trading.isBotRunning) {
+                    if (!trading.isPlatformReady) {
+                      _showPlatformOfflineDialog(context);
+                      return;
+                    }
                     if (SecmonState.auth.currentTraderId.isEmpty) {
                       _showActivationModal(context);
                       return;
                     }
                     if (trading.isTraderIdMismatch) {
                       _showTraderIdMismatchDialog(context);
-                      return;
-                    }
-                    if (!trading.isPlatformReady) {
-                      _showPlatformOfflineDialog(context);
                       return;
                     }
                   }
