@@ -771,39 +771,91 @@ class _WebTabState extends State<WebTab> {
 
   // 5. Monitor Logged In Trader ID to prevent account switching loophole
   let _lastSentTraderId = "";
-  function checkTraderId() {
+  async function checkTraderId() {
     let extractedId = null;
 
-    // A. Scan localStorage for ID values
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.toLowerCase().includes('user') || key.toLowerCase().includes('profile') || key.toLowerCase().includes('auth') || key.toLowerCase().includes('account') || key.toLowerCase().includes('state'))) {
-          const val = localStorage.getItem(key);
-          if (val) {
-            // Check if it's a direct digit string
-            if (/^\d{5,15}$/.test(val.trim())) {
-              extractedId = val.trim();
-              break;
-            }
-            // Check via regex on JSON string
-            const match = val.match(/(?:"id"|"userId"|"user_id"|"traderId"|"trader_id"|"account_id"|"accountId"|"cid")\s*:\s*"?(\d{5,15})"?/i);
+    // A. Scan Performance Resource Entries (WebSocket & HTTP query params containing user_id / cid / trader_id / account_id)
+    if (!extractedId) {
+      try {
+        const resources = window.performance.getEntriesByType('resource');
+        for (let r of resources) {
+          if (r.name) {
+            const match = r.name.match(/(?:user_id|user-id|userId|trader_id|traderId|account_id|accountId|client_id|clientId|profile_id|profileId|cid|uid)=(\d{5,15})/i);
             if (match && match[1]) {
               extractedId = match[1];
               break;
             }
           }
         }
-      }
-    } catch(e) {}
+      } catch(e) {}
+    }
 
-    // B. Scan window objects
+    // B. Scan entire DOM innerHTML for JSON key-value pairs matching user/trader ID
     if (!extractedId) {
       try {
-        const objects = [window.user, window.profile, window.currentUser, window.state];
+        const html = document.documentElement.innerHTML;
+        if (html && html.length < 2000000) {
+          const match = html.match(/(?:"id"|"userId"|"user_id"|"traderId"|"trader_id"|"account_id"|"accountId"|"clientId"|"client_id"|"profileId"|"profile_id"|"cid"|"uid")\s*:\s*"?(\d{5,15})"?/i);
+          if (match && match[1]) {
+            extractedId = match[1];
+          }
+        }
+      } catch(e) {}
+    }
+
+    // C. Scan Storage (localStorage + sessionStorage) for ID values or JSON objects
+    function scanStorage(storage) {
+      if (!storage) return null;
+      try {
+        for (let i = 0; i < storage.length; i++) {
+          const key = storage.key(i);
+          if (!key) continue;
+          const val = storage.getItem(key);
+          if (!val) continue;
+          const trimmed = val.trim();
+          if (/^\d{5,15}$/.test(trimmed)) {
+            return trimmed;
+          }
+          const match = val.match(/(?:"id"|"userId"|"user_id"|"traderId"|"trader_id"|"account_id"|"accountId"|"clientId"|"client_id"|"profileId"|"profile_id"|"cid"|"uid")\s*:\s*"?(\d{5,15})"?/i);
+          if (match && match[1]) {
+            return match[1];
+          }
+        }
+      } catch(e) {}
+      return null;
+    }
+
+    if (!extractedId) {
+      extractedId = scanStorage(localStorage) || scanStorage(sessionStorage);
+    }
+
+    // D. Scan inline <script> tags for initial state JSON (__NEXT_DATA__, __INITIAL_STATE__, etc.)
+    if (!extractedId) {
+      try {
+        const scripts = document.querySelectorAll('script');
+        for (let s of scripts) {
+          const txt = s.textContent || "";
+          if (txt.length < 500000 && (txt.includes('user') || txt.includes('profile') || txt.includes('account') || txt.includes('id'))) {
+            const match = txt.match(/(?:"id"|"userId"|"user_id"|"traderId"|"trader_id"|"account_id"|"accountId"|"clientId"|"client_id"|"profileId"|"profile_id"|"cid"|"uid")\s*:\s*"?(\d{5,15})"?/i);
+            if (match && match[1]) {
+              extractedId = match[1];
+              break;
+            }
+          }
+        }
+      } catch(e) {}
+    }
+
+    // E. Scan window objects
+    if (!extractedId) {
+      try {
+        const objects = [
+          window.user, window.profile, window.currentUser, window.state,
+          window.OlympTrade, window.__INITIAL_STATE__, window.appState, window.userData
+        ];
         for (let obj of objects) {
           if (obj && typeof obj === 'object') {
-            const id = obj.id || obj.userId || obj.user_id || obj.traderId || obj.trader_id || obj.account_id || obj.accountId || obj.cid;
+            const id = obj.id || obj.userId || obj.user_id || obj.traderId || obj.trader_id || obj.account_id || obj.accountId || obj.clientId || obj.client_id || obj.cid || obj.uid;
             if (id && /^\d{5,15}$/.test(id.toString().trim())) {
               extractedId = id.toString().trim();
               break;
@@ -813,7 +865,7 @@ class _WebTabState extends State<WebTab> {
       } catch(e) {}
     }
 
-    // C. Scan cookies
+    // F. Scan cookies
     if (!extractedId) {
       try {
         const cookies = document.cookie.split(';');
@@ -821,7 +873,7 @@ class _WebTabState extends State<WebTab> {
           const parts = cookie.split('=');
           const name = parts[0].trim().toLowerCase();
           const val = parts[1] ? parts[1].trim() : '';
-          if (name.includes('userid') || name.includes('traderid') || name.includes('user_id') || name.includes('cid')) {
+          if (name.includes('user') || name.includes('trader') || name.includes('cid') || name.includes('account') || name.includes('uid')) {
             if (/^\d{5,15}$/.test(val)) {
               extractedId = val;
               break;
@@ -831,14 +883,14 @@ class _WebTabState extends State<WebTab> {
       } catch(e) {}
     }
 
-    // D. Scan DOM elements
+    // G. Scan DOM elements specifically looking for Trader ID label patterns
     if (!extractedId) {
       try {
         const textElements = document.querySelectorAll('span, div, p, a, h3, h4, li');
         for (let el of textElements) {
           if (el.children.length === 0) {
             const txt = el.textContent || "";
-            const match = txt.match(/(?:id|trader\s*id|user\s*id|client\s*id)[:\s]+(\d{5,15})/i);
+            const match = txt.match(/(?:id|trader\s*id|user\s*id|client\s*id|account\s*id|uid)[:\s#№-]+(\d{5,15})/i);
             if (match && match[1]) {
               extractedId = match[1].trim();
               break;
@@ -848,12 +900,12 @@ class _WebTabState extends State<WebTab> {
       } catch(e) {}
     }
 
-    // E. Scan sidebar / drawers specifically if open
+    // H. Scan sidebar / drawers specifically if open
     if (!extractedId) {
       try {
         const sidebar = document.querySelector('[class*="profile"], [class*="sidebar"], [class*="menu"], [class*="drawer"], [class*="modal"]');
         if (sidebar) {
-          const match = sidebar.textContent.match(/(?:id|trader\s*id|user\s*id|client\s*id)[:\s]+(\d{5,15})/i);
+          const match = sidebar.textContent.match(/(?:id|trader\s*id|user\s*id|client\s*id|account\s*id|uid)[:\s#№-]+(\d{5,15})/i);
           if (match && match[1]) {
             extractedId = match[1].trim();
           } else {
@@ -866,13 +918,84 @@ class _WebTabState extends State<WebTab> {
       } catch(e) {}
     }
 
+    // I. Active Background Fetch Probe for OlympTrade profile endpoints using session cookies
+    if (!extractedId && !window.__secmonFetchProbeRan) {
+      window.__secmonFetchProbeRan = true;
+      const endpoints = ['/api/v1/user', '/api/v2/profile', '/api/v1/profile', '/platform/user', '/api/v3/user/profile'];
+      for (let ep of endpoints) {
+        try {
+          const res = await fetch(ep, { credentials: 'include' });
+          if (res.ok) {
+            const data = await res.json();
+            const text = JSON.stringify(data);
+            const match = text.match(/(?:"id"|"userId"|"user_id"|"traderId"|"trader_id"|"account_id"|"accountId"|"clientId"|"client_id"|"profileId"|"profile_id"|"cid"|"uid")\s*:\s*"?(\d{5,15})"?/i);
+            if (match && match[1]) {
+              extractedId = match[1];
+              break;
+            }
+          }
+        } catch(e) {}
+      }
+      setTimeout(() => { window.__secmonFetchProbeRan = false; }, 5000);
+    }
+
     if (extractedId && extractedId !== _lastSentTraderId) {
       _lastSentTraderId = extractedId;
       SecmonBridge.postMessage("TRADER_ID_CHECK:" + extractedId);
     }
   }
 
-  setInterval(checkTraderId, 2500);
+  // Hook WebSocket to intercept incoming user ID frames
+  try {
+    const OriginalWS = window.WebSocket;
+    if (OriginalWS && !window.__secmonWSHooked) {
+      window.__secmonWSHooked = true;
+      window.WebSocket = function(url, protocols) {
+        const ws = protocols ? new OriginalWS(url, protocols) : new OriginalWS(url);
+        ws.addEventListener('message', function(evt) {
+          try {
+            if (typeof evt.data === 'string' && evt.data.length < 5000) {
+              const match = evt.data.match(/(?:"id"|"userId"|"user_id"|"traderId"|"trader_id"|"account_id"|"accountId"|"clientId"|"client_id"|"profileId"|"profile_id"|"cid"|"uid")\s*:\s*"?(\d{5,15})"?/i);
+              if (match && match[1] && match[1] !== _lastSentTraderId) {
+                _lastSentTraderId = match[1];
+                SecmonBridge.postMessage("TRADER_ID_CHECK:" + match[1]);
+              }
+            }
+          } catch(e) {}
+        });
+        return ws;
+      };
+      window.WebSocket.prototype = OriginalWS.prototype;
+    }
+  } catch(e) {}
+
+  // Hook fetch to intercept incoming profile JSON responses
+  try {
+    if (window.fetch && !window.__secmonFetchHooked) {
+      window.__secmonFetchHooked = true;
+      const origFetch = window.fetch;
+      window.fetch = async function(...args) {
+        const resp = await origFetch.apply(this, args);
+        try {
+          const clone = resp.clone();
+          clone.text().then(text => {
+            if (text && text.length < 10000) {
+              const match = text.match(/(?:"id"|"userId"|"user_id"|"traderId"|"trader_id"|"account_id"|"accountId"|"clientId"|"client_id"|"profileId"|"profile_id"|"cid"|"uid")\s*:\s*"?(\d{5,15})"?/i);
+              if (match && match[1] && match[1] !== _lastSentTraderId) {
+                _lastSentTraderId = match[1];
+                SecmonBridge.postMessage("TRADER_ID_CHECK:" + match[1]);
+              }
+            }
+          }).catch(() => {});
+        } catch(e) {}
+        return resp;
+      };
+    }
+  } catch(e) {}
+
+  setInterval(checkBalance, 1000);
+  setInterval(checkActiveAsset, 1500);
+  setInterval(checkTraderId, 1500);
 })();
 """;
     final String scriptToInject = ConfigService.cachedBridgeScript.isNotEmpty
