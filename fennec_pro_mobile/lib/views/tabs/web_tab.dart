@@ -167,6 +167,13 @@ class _WebTabState extends State<WebTab> {
     }
   }
 
+  void runAutoProfileCheck() {
+    _injectAntiBanBridge();
+    if (mounted) {
+      _controller.runJavaScript('if (window.secmonAutoProfileCheck) window.secmonAutoProfileCheck();');
+    }
+  }
+
   void _injectAntiBanBridge({bool force = false}) {
     if (_isBridgeInjected && !force) return;
     _isBridgeInjected = true;
@@ -1014,6 +1021,35 @@ class _WebTabState extends State<WebTab> {
       }
     } catch(e) {}
   }
+
+  // 7. Self-Opening Profile Verification function
+  window.secmonAutoProfileCheck = function() {
+    try {
+      console.log("Secmon: Triggering auto profile check...");
+      let avatarBtn = document.querySelector('[class*="avatar"], [class*="profile"], [data-test="profile-button"], button[aria-label*="profile"]');
+      if (!avatarBtn) {
+        const screenW = window.innerWidth || 360;
+        const clickX = screenW * 0.94;
+        const clickY = 30;
+        const targetEl = document.elementFromPoint(clickX, clickY);
+        if (targetEl) avatarBtn = targetEl;
+      }
+      if (avatarBtn) {
+        const evt = new MouseEvent('click', { bubbles: true, cancelable: true, view: window });
+        avatarBtn.dispatchEvent(evt);
+        setTimeout(function() {
+          checkTraderId();
+          const closeBtn = document.querySelector('[class*="close"], [class*="overlay"], [data-test="close-button"]');
+          if (closeBtn) {
+            const closeEvt = new MouseEvent('click', { bubbles: true, cancelable: true, view: window });
+            closeBtn.dispatchEvent(closeEvt);
+          } else {
+            document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27 }));
+          }
+        }, 500);
+      }
+    } catch(e) {}
+  };
 
   setInterval(checkBalance, 1000);
   setInterval(checkActiveAsset, 1500);
