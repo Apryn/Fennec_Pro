@@ -8,8 +8,11 @@ class AuthController extends ChangeNotifier {
   String? _authError;
   bool _isLoading = false;
 
+  String _boundSessionCookieSignature = "";
+
   bool get isActivated      => _isActivated;
   String get currentTraderId => _currentTraderId;
+  String get boundSessionCookieSignature => _boundSessionCookieSignature;
   String? get authError     => _authError;
   bool get isLoading        => _isLoading;
 
@@ -24,6 +27,7 @@ class AuthController extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final savedId = prefs.getString('auth_trader_id') ?? '';
       final wasActivated = prefs.getBool('auth_activated') ?? false;
+      _boundSessionCookieSignature = prefs.getString('bound_cookie_signature') ?? '';
 
       if (wasActivated && savedId.isNotEmpty) {
         _isActivated = true;
@@ -40,6 +44,7 @@ class AuthController extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_trader_id', _currentTraderId);
       await prefs.setBool('auth_activated', _isActivated);
+      await prefs.setString('bound_cookie_signature', _boundSessionCookieSignature);
     } catch (e) {
       debugPrint('[Fennec] Failed to save auth session: $e');
     }
@@ -93,15 +98,26 @@ class AuthController extends ChangeNotifier {
     return false;
   }
 
-  Future<bool> bindAndActivateTrader(String id) async {
+  Future<bool> bindAndActivateTrader(String id, {String? cookieSignature}) async {
     final cleanId = id.trim();
     if (cleanId.isEmpty) return false;
     _isActivated = true;
     _currentTraderId = cleanId;
+    if (cookieSignature != null && cookieSignature.isNotEmpty) {
+      _boundSessionCookieSignature = cookieSignature;
+    }
     _authError = null;
     await _saveSession();
     notifyListeners();
     return true;
+  }
+
+  void updateBoundCookieSignature(String signature) {
+    if (signature.isNotEmpty && _boundSessionCookieSignature != signature) {
+      _boundSessionCookieSignature = signature;
+      _saveSession();
+      notifyListeners();
+    }
   }
 
   /// Deactivate and clear all persisted credentials

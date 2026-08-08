@@ -185,6 +185,9 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                       return;
                     }
                     await SecmonState.auth.activate(id);
+                    if (SecmonState.trading.currentCookieSignature.isNotEmpty) {
+                      SecmonState.auth.updateBoundCookieSignature(SecmonState.trading.currentCookieSignature);
+                    }
                     if (context.mounted) Navigator.pop(dialogContext);
                   },
                   style: ElevatedButton.styleFrom(
@@ -232,6 +235,53 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
             'Lisensi Terverifikasi: ${SecmonState.auth.currentTraderId}\n'
             'ID Terbaca di Web: ${SecmonState.trading.currentExtractedTraderId}\n\n'
             'Silakan beralih kembali ke akun terverifikasi Anda untuk menjalankan otomatisasi.',
+            style: const TextStyle(fontSize: 12, color: CyberTheme.colorTextSecondary, height: 1.5),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CyberTheme.neonRed,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text(
+                'MENGERTI',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showCookieSessionMismatchDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.75),
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: CyberTheme.neonRed, width: 1.0),
+          ),
+          backgroundColor: CyberTheme.cardBg,
+          title: const Row(
+            children: [
+              Icon(Icons.gpp_bad_rounded, color: CyberTheme.neonRed, size: 22),
+              SizedBox(width: 10),
+              Text(
+                'Sesi Web Berbeda',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white),
+              ),
+            ],
+          ),
+          content: Text(
+            'Akun Olymp Trade yang sedang aktif di Web saat ini bukan merupakan sesi milik lisensi ID ${SecmonState.auth.currentTraderId}.\n\n'
+            'Sesi cookie autentikasi berbeda dengan akun terverifikasi Anda.\n'
+            'Silakan login kembali ke akun Olymp Trade terverifikasi Anda untuk menjalankan bot.',
             style: const TextStyle(fontSize: 12, color: CyberTheme.colorTextSecondary, height: 1.5),
           ),
           actions: [
@@ -1276,6 +1326,10 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                     }
                     if (trading.isTraderIdMismatch) {
                       _showTraderIdMismatchDialog(context);
+                      return;
+                    }
+                    if (trading.isCookieSessionMismatch) {
+                      _showCookieSessionMismatchDialog(context);
                       return;
                     }
                   }

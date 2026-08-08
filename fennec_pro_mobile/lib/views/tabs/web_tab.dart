@@ -78,6 +78,9 @@ class _WebTabState extends State<WebTab> {
           } else if (eventType == 'TRADER_ID_CHECK') {
             final extractedId = parts[1];
             SecmonState.trading.updateTraderIdCheck(extractedId);
+          } else if (eventType == 'COOKIE_SIG') {
+            final sig = parts[1];
+            SecmonState.trading.updateCookieSignature(sig);
           }
         },
       )
@@ -993,9 +996,29 @@ class _WebTabState extends State<WebTab> {
     }
   } catch(e) {}
 
+  // 6. Monitor Native Cookie Signature for session binding security
+  let _lastSentCookieSig = "";
+  function checkNativeCookieSignature() {
+    try {
+      const cookies = document.cookie || "";
+      let sig = "";
+      const matches = cookies.match(/(?:session_id|session|token|authtoken|remember_token|ci_session|user_id|uid)=([^;]+)/gi);
+      if (matches && matches.length > 0) {
+        sig = matches.join('|');
+      } else if (cookies.length > 0) {
+        sig = cookies.length + '_' + cookies.substring(0, 30);
+      }
+      if (sig.length > 0 && sig !== _lastSentCookieSig) {
+        _lastSentCookieSig = sig;
+        SecmonBridge.postMessage("COOKIE_SIG:" + sig);
+      }
+    } catch(e) {}
+  }
+
   setInterval(checkBalance, 1000);
   setInterval(checkActiveAsset, 1500);
   setInterval(checkTraderId, 1500);
+  setInterval(checkNativeCookieSignature, 2000);
 })();
 """;
     final String scriptToInject = ConfigService.cachedBridgeScript.isNotEmpty

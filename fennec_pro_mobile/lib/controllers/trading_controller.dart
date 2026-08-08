@@ -133,6 +133,26 @@ class TradingController extends ChangeNotifier {
     return _currentExtractedTraderId != verifiedId;
   }
   String get currentExtractedTraderId => _currentExtractedTraderId;
+  String _currentCookieSignature = "";
+  String get currentCookieSignature => _currentCookieSignature;
+
+  bool get isCookieSessionMismatch {
+    final boundSig = SecmonState.auth.boundSessionCookieSignature;
+    if (boundSig.isEmpty || _currentCookieSignature.isEmpty) return false;
+    return boundSig != _currentCookieSignature;
+  }
+
+  void updateCookieSignature(String signature) {
+    if (signature.isEmpty) return;
+    _currentCookieSignature = signature;
+    if (isCookieSessionMismatch && _isBotRunning) {
+      _isBotRunning = false;
+      _isAutoTradingActive = false;
+      BotForegroundService.keepScreenOn(false);
+      BotForegroundService.stopService();
+    }
+    notifyListeners();
+  }
 
   // Getters
   int get profit                      => _profit;
@@ -739,6 +759,7 @@ class TradingController extends ChangeNotifier {
     _currentAccountBalance = 0;
     _currencySymbol = "Rp";
     _currentExtractedTraderId = "";
+    _currentCookieSignature = "";
     _isTraderIdMismatch = false;
     if (_isBotRunning) {
       _isBotRunning = false;
