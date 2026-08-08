@@ -54,7 +54,9 @@ class _SecmonAppState extends State<SecmonApp> {
           title: 'SECMON',
           debugShowCheckedModeBanner: false,
           theme: CyberTheme.themeData,
-          home: const DashboardScreen(),
+          home: _authController.isActivated
+              ? const DashboardScreen()
+              : const AuthScreen(),
         );
       },
     );

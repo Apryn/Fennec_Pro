@@ -52,162 +52,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     }
   }
 
-  void _showPlatformOfflineDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withOpacity(0.75),
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-            side: const BorderSide(color: CyberTheme.borderDark, width: 1.0),
-          ),
-          backgroundColor: CyberTheme.cardBg,
-          title: const Row(
-            children: [
-              Icon(Icons.wifi_off_rounded, color: CyberTheme.neonYellow, size: 22),
-              SizedBox(width: 10),
-              Text(
-                'Platform Belum Terhubung',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white),
-              ),
-            ],
-          ),
-          content: const Text(
-            'Halaman platform trading Olymp Trade belum selesai dimuat atau Anda belum login ke akun Olymp Trade Anda.\n\n'
-            'Silakan buka tab PLATFORM WEB untuk melakukan login terlebih dahulu agar eksekusi otomatisasi Bot dapat berjalan.',
-            style: TextStyle(fontSize: 12, color: CyberTheme.colorTextSecondary, height: 1.5),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Batal', style: TextStyle(color: CyberTheme.colorTextMuted, fontSize: 12)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                setState(() {
-                  _currentIndex = 1;
-                });
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: CyberTheme.neonGreen,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: const Text(
-                'BUKA PLATFORM WEB',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
-  void _showActivationModal(BuildContext context) {
-    final textController = TextEditingController();
-    String? errorText;
-
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withOpacity(0.75),
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: const BorderSide(color: CyberTheme.neonGreen, width: 1.0),
-              ),
-              backgroundColor: CyberTheme.cardBg,
-              title: const Row(
-                children: [
-                  Icon(Icons.verified_user_outlined, color: CyberTheme.neonGreen, size: 22),
-                  SizedBox(width: 10),
-                  Text(
-                    'Aktivasi Robot Trading',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white),
-                  ),
-                ],
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Masukkan Trader ID Olymp Trade Anda untuk mengikat lisensi & mengaktifkan bot:',
-                    style: TextStyle(fontSize: 12, color: CyberTheme.colorTextSecondary, height: 1.4),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: textController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: InputDecoration(
-                      hintText: 'Contoh: 12345678',
-                      hintStyle: const TextStyle(color: CyberTheme.colorTextMuted, fontSize: 12),
-                      fillColor: Colors.white.withOpacity(0.05),
-                      filled: true,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                    ),
-                  ),
-                  if (errorText != null) ...[
-                    const SizedBox(height: 10),
-                    Text(
-                      errorText!,
-                      style: const TextStyle(color: CyberTheme.neonRed, fontSize: 11, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Batal', style: TextStyle(color: CyberTheme.colorTextMuted, fontSize: 12)),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    final id = textController.text.trim();
-                    if (id.isEmpty) {
-                      setModalState(() {
-                        errorText = "Trader ID tidak boleh kosong.";
-                      });
-                      return;
-                    }
-                    final extracted = SecmonState.trading.currentExtractedTraderId;
-                    if (extracted.isNotEmpty && extracted != id) {
-                      setModalState(() {
-                        errorText = "Trader ID ($id) tidak cocok dengan akun Olymp Trade yang aktif di Web ($extracted).";
-                      });
-                      return;
-                    }
-                    await SecmonState.auth.activate(id);
-                    if (SecmonState.trading.currentCookieSignature.isNotEmpty) {
-                      SecmonState.auth.updateBoundCookieSignature(SecmonState.trading.currentCookieSignature);
-                    }
-                    if (context.mounted) Navigator.pop(dialogContext);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: CyberTheme.neonGreen,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: const Text(
-                    'AKTIVASI',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
 
   void _showTraderIdMismatchDialog(BuildContext context) {
     showDialog(
@@ -295,6 +140,55 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
               ),
               child: const Text(
                 'MENGERTI',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showWebLoginFormDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.75),
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: CyberTheme.neonYellow, width: 1.0),
+          ),
+          backgroundColor: CyberTheme.cardBg,
+          title: const Row(
+            children: [
+              Icon(Icons.lock_clock_outlined, color: CyberTheme.neonYellow, size: 22),
+              SizedBox(width: 10),
+              Text(
+                'Belum Login di Web',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white),
+              ),
+            ],
+          ),
+          content: const Text(
+            'Halaman Web Olymp Trade saat ini masih menampilkan form login.\n\n'
+            'Silakan login terlebih dahulu ke akun Olymp Trade Anda di tab WEB agar bot dapat dijalankan.',
+            style: TextStyle(fontSize: 12, color: CyberTheme.colorTextSecondary, height: 1.5),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() => _currentIndex = 2);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CyberTheme.neonYellow,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text(
+                'KE TAB WEB',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
               ),
             ),
@@ -975,10 +869,10 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
               children: [
                 const Icon(Icons.lock_outline_rounded, color: CyberTheme.neonYellow, size: 22),
                 const SizedBox(width: 10),
-                Expanded(
+                const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
                         'Platform Belum Terhubung',
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
@@ -1001,55 +895,6 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   child: const Text('LOGIN WEB', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
-          )
-        else if (SecmonState.auth.currentTraderId.isEmpty || SecmonState.auth.currentTraderId != trading.currentExtractedTraderId)
-          Container(
-            margin: const EdgeInsets.only(bottom: 14),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: CyberTheme.neonGreen.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CyberTheme.neonGreen.withOpacity(0.4)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.verified_user_outlined, color: CyberTheme.neonGreen, size: 22),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Akun Terdeteksi: ID ${trading.currentExtractedTraderId.isNotEmpty ? trading.currentExtractedTraderId : 'Memuat...'}',
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'Klik Aktivasi untuk mengikat lisensi ke akun Olymp Trade ini.',
-                        style: TextStyle(fontSize: 10, color: CyberTheme.colorTextSecondary),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (trading.currentExtractedTraderId.isNotEmpty) {
-                      await SecmonState.auth.bindAndActivateTrader(trading.currentExtractedTraderId);
-                    } else {
-                      _showActivationModal(context);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: CyberTheme.neonGreen,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: const Text('AKTIVASI', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -1316,12 +1161,8 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
               child: ElevatedButton.icon(
                 onPressed: () {
                   if (!trading.isBotRunning) {
-                    if (!trading.isPlatformReady) {
-                      _showPlatformOfflineDialog(context);
-                      return;
-                    }
-                    if (SecmonState.auth.currentTraderId.isEmpty) {
-                      _showActivationModal(context);
+                    if (trading.isWebLoginFormVisible || !trading.isPlatformReady) {
+                      _showWebLoginFormDialog(context);
                       return;
                     }
                     if (trading.isTraderIdMismatch) {

@@ -604,43 +604,50 @@
   function checkTraderId() {
     let extractedId = null;
 
-    // A. Scan localStorage for ID values
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.toLowerCase().includes('user') || key.toLowerCase().includes('profile') || key.toLowerCase().includes('auth') || key.toLowerCase().includes('account') || key.toLowerCase().includes('state'))) {
-          const val = localStorage.getItem(key);
-          if (val) {
-            // Check if it's a direct digit string
-            if (/^\d{5,15}$/.test(val.trim())) {
-              extractedId = val.trim();
-              break;
+    // A. Scan Performance Resource Entries (WebSocket & HTTP query params containing user_id / cid / trader_id / account_id)
+    if (!extractedId) {
+      try {
+        const resources = window.performance.getEntriesByType('resource');
+        for (let r of resources) {
+          if (r.name) {
+            const urlLower = r.name.toLowerCase();
+            if (urlLower.includes('google') || urlLower.includes('doubleclick') || urlLower.includes('facebook') || urlLower.includes('analytics') || urlLower.includes('yandex') || urlLower.includes('gtm')) {
+              continue;
             }
-            // Check via regex on JSON string
-            const match = val.match(/(?:"id"|"userId"|"user_id"|"traderId"|"trader_id"|"account_id"|"accountId"|"cid")\s*:\s*"?(\d{5,15})"?/i);
+            const match = r.name.match(/(?:user_id|user-id|userId|trader_id|traderId|account_id|accountId|client_id|clientId|profile_id|profileId|cid|uid)=(\d{5,15})/i);
             if (match && match[1]) {
               extractedId = match[1];
               break;
             }
           }
         }
-      }
-    } catch(e) {}
+      } catch(e) {}
+    }
 
-    // B. Scan window objects
-    if (!extractedId) {
+    // B. Scan Storage (localStorage + sessionStorage) unconditionally for ID values or JSON objects
+    function scanStore(storage) {
+      if (!storage) return null;
       try {
-        const objects = [window.user, window.profile, window.currentUser, window.state];
-        for (let obj of objects) {
-          if (obj && typeof obj === 'object') {
-            const id = obj.id || obj.userId || obj.user_id || obj.traderId || obj.trader_id || obj.account_id || obj.accountId || obj.cid;
-            if (id && /^\d{5,15}$/.test(id.toString().trim())) {
-              extractedId = id.toString().trim();
-              break;
-            }
+        for (let i = 0; i < storage.length; i++) {
+          const key = storage.key(i);
+          if (!key) continue;
+          const val = storage.getItem(key);
+          if (!val) continue;
+          const trimmed = val.trim();
+          if (/^\d{5,15}$/.test(trimmed)) {
+            return trimmed;
+          }
+          const match = val.match(/(?:"id"|"userId"|"user_id"|"traderId"|"trader_id"|"account_id"|"accountId"|"clientId"|"client_id"|"profileId"|"profile_id"|"cid"|"uid")\s*:\s*"?(\d{5,15})"?/i);
+          if (match && match[1]) {
+            return match[1];
           }
         }
       } catch(e) {}
+      return null;
+    }
+
+    if (!extractedId) {
+      extractedId = scanStore(localStorage) || scanStore(sessionStorage);
     }
 
     // C. Scan cookies
@@ -661,18 +668,28 @@
       } catch(e) {}
     }
 
-    // D. Scan DOM elements
+    // D. Scan DOM elements specifically targeting profile ID elements & data-test attributes
     if (!extractedId) {
       try {
-        const textElements = document.querySelectorAll('span, div, p, a, h3, h4, li');
+        const idValEl = document.querySelector('[data-test="id-value"], [data-test="id-link"], [data-test*="id-value"], [data-test*="trader-id"], [data-test*="user-id"]');
+        if (idValEl) {
+          const match = idValEl.textContent.match(/\b\d{5,15}\b/);
+          if (match && match[0]) {
+            extractedId = match[0];
+          }
+        }
+      } catch(e) {}
+    }
+
+    if (!extractedId) {
+      try {
+        const textElements = document.querySelectorAll('[data-test*="id"], [data-trans*="id"], span, div, p, a, h3, h4, li');
         for (let el of textElements) {
-          if (el.children.length === 0) {
-            const txt = el.textContent || "";
-            const match = txt.match(/(?:id|trader\s*id|user\s*id|client\s*id)[:\s]+(\d{5,15})/i);
-            if (match && match[1]) {
-              extractedId = match[1].trim();
-              break;
-            }
+          const txt = el.textContent || "";
+          const match = txt.match(/(?:id|trader\s*id|user\s*id|client\s*id)[:\s#№-]+(\d{5,15})/i);
+          if (match && match[1]) {
+            extractedId = match[1].trim();
+            break;
           }
         }
       } catch(e) {}
@@ -702,5 +719,47 @@
     }
   }
 
+  function triggerClick(el) {
+    if (!el) return;
+    try { el.focus(); } catch(e) {}
+    try { el.click(); } catch(e) {}
+    try {
+      el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
+      el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
+      el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    } catch(e) {}
+  }
+
+  let _autoCheckAttempts = 0;
+  function secmonAutoProfileCheck() {
+    if (_lastSentTraderId) return;
+    if (_autoCheckAttempts > 20) return;
+    _autoCheckAttempts++;
+
+    try {
+      const path = (window.location.pathname || "").toLowerCase();
+      if (path.includes('/login') || path.includes('/auth') || path.includes('/registration')) return;
+
+      let avatarBtn = document.querySelector('[data-test="id-link"], [data-test="profile-info-avatar"], [class*="profile-info"], [class*="profile-avatar"], [class*="avatar"], [class*="profile"], [data-test="profile-button"], button[aria-label*="profile"]');
+      if (!avatarBtn) {
+        const screenW = window.innerWidth || 360;
+        const targetEl = document.elementFromPoint(screenW - 25, 25);
+        if (targetEl && !targetEl.closest('iframe')) avatarBtn = targetEl;
+      }
+      if (avatarBtn) {
+        triggerClick(avatarBtn);
+        setTimeout(function() {
+          checkTraderId();
+          if (_lastSentTraderId) {
+            const closeBtn = document.querySelector('[class*="close"], [class*="overlay"], [data-test="close-button"]');
+            if (closeBtn) triggerClick(closeBtn);
+            else document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27 }));
+          }
+        }, 800);
+      }
+    } catch(e) {}
+  }
+
   setInterval(checkTraderId, 2500);
+  setInterval(secmonAutoProfileCheck, 3000);
 })();

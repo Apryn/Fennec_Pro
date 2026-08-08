@@ -117,8 +117,6 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       decoration: InputDecoration(
                         counterText: "",
-                        hintText: "Contoh: 88888",
-                        hintStyle: const TextStyle(color: CyberTheme.colorTextMuted),
                         fillColor: CyberTheme.cardBg,
                         filled: true,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

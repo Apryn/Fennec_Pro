@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../theme/cyber_theme.dart';
 import '../../main.dart';
-import '../../services/config_service.dart';
 
 class WebTab extends StatefulWidget {
   const WebTab({super.key});
@@ -81,6 +80,9 @@ class _WebTabState extends State<WebTab> {
           } else if (eventType == 'COOKIE_SIG') {
             final sig = parts[1];
             SecmonState.trading.updateCookieSignature(sig);
+          } else if (eventType == 'IS_LOGIN_FORM') {
+            final isLogin = parts[1] == 'true';
+            SecmonState.trading.updateWebLoginFormStatus(isLogin);
           }
         },
       )
@@ -685,6 +687,11 @@ class _WebTabState extends State<WebTab> {
   // 4. Humanized Event Dispatcher (Anti-Ban mouse simulation)
   let _lastClickTime = 0;
   window.secmonExecuteClick = function(direction, nominal) {
+    if (!_lastSentTraderId) {
+      console.warn("Secmon Bridge: Trader ID missing. Triggering auto profile check before trade...");
+      if (typeof secmonAutoProfileCheck === 'function') secmonAutoProfileCheck();
+      return;
+    }
     const now = Date.now();
     if (now - _lastClickTime < 500) {
       console.warn("Secmon Bridge: Double execution blocked in JS");
@@ -790,6 +797,11 @@ class _WebTabState extends State<WebTab> {
         const resources = window.performance.getEntriesByType('resource');
         for (let r of resources) {
           if (r.name) {
+            const urlLower = r.name.toLowerCase();
+            // Ignore third-party analytics/ad trackers (Google, DoubleClick, Facebook, Yandex)
+            if (urlLower.includes('google') || urlLower.includes('doubleclick') || urlLower.includes('facebook') || urlLower.includes('analytics') || urlLower.includes('yandex') || urlLower.includes('gtm')) {
+              continue;
+            }
             const match = r.name.match(/(?:user_id|user-id|userId|trader_id|traderId|account_id|accountId|client_id|clientId|profile_id|profileId|cid|uid)=(\d{5,15})/i);
             if (match && match[1]) {
               extractedId = match[1];
@@ -800,20 +812,7 @@ class _WebTabState extends State<WebTab> {
       } catch(e) {}
     }
 
-    // B. Scan entire DOM innerHTML for JSON key-value pairs matching user/trader ID
-    if (!extractedId) {
-      try {
-        const html = document.documentElement.innerHTML;
-        if (html && html.length < 2000000) {
-          const match = html.match(/(?:"id"|"userId"|"user_id"|"traderId"|"trader_id"|"account_id"|"accountId"|"clientId"|"client_id"|"profileId"|"profile_id"|"cid"|"uid")\s*:\s*"?(\d{5,15})"?/i);
-          if (match && match[1]) {
-            extractedId = match[1];
-          }
-        }
-      } catch(e) {}
-    }
-
-    // C. Scan Storage (localStorage + sessionStorage) for ID values or JSON objects
+    // B. Scan Storage (localStorage + sessionStorage) for ID values or JSON objects
     function scanStorage(storage) {
       if (!storage) return null;
       try {
@@ -839,24 +838,7 @@ class _WebTabState extends State<WebTab> {
       extractedId = scanStorage(localStorage) || scanStorage(sessionStorage);
     }
 
-    // D. Scan inline <script> tags for initial state JSON (__NEXT_DATA__, __INITIAL_STATE__, etc.)
-    if (!extractedId) {
-      try {
-        const scripts = document.querySelectorAll('script');
-        for (let s of scripts) {
-          const txt = s.textContent || "";
-          if (txt.length < 500000 && (txt.includes('user') || txt.includes('profile') || txt.includes('account') || txt.includes('id'))) {
-            const match = txt.match(/(?:"id"|"userId"|"user_id"|"traderId"|"trader_id"|"account_id"|"accountId"|"clientId"|"client_id"|"profileId"|"profile_id"|"cid"|"uid")\s*:\s*"?(\d{5,15})"?/i);
-            if (match && match[1]) {
-              extractedId = match[1];
-              break;
-            }
-          }
-        }
-      } catch(e) {}
-    }
-
-    // E. Scan window objects
+    // C. Scan window objects
     if (!extractedId) {
       try {
         const objects = [
@@ -875,7 +857,7 @@ class _WebTabState extends State<WebTab> {
       } catch(e) {}
     }
 
-    // F. Scan cookies
+    // D. Scan cookies
     if (!extractedId) {
       try {
         const cookies = document.cookie.split(';');
@@ -893,24 +875,34 @@ class _WebTabState extends State<WebTab> {
       } catch(e) {}
     }
 
-    // G. Scan DOM elements specifically looking for Trader ID label patterns
+    // E. Direct selector for OlympTrade profile DOM structure (e.g. data-test="id-value" or data-test="id-link")
     if (!extractedId) {
       try {
-        const textElements = document.querySelectorAll('span, div, p, a, h3, h4, li');
-        for (let el of textElements) {
-          if (el.children.length === 0) {
-            const txt = el.textContent || "";
-            const match = txt.match(/(?:id|trader\s*id|user\s*id|client\s*id|account\s*id|uid)[:\s#№-]+(\d{5,15})/i);
-            if (match && match[1]) {
-              extractedId = match[1].trim();
-              break;
-            }
+        const idValEl = document.querySelector('[data-test="id-value"], [data-test="id-link"], [data-test*="id-value"], [data-test*="trader-id"], [data-test*="user-id"]');
+        if (idValEl) {
+          const match = idValEl.textContent.match(/\b\d{5,15}\b/);
+          if (match && match[0]) {
+            extractedId = match[0];
           }
         }
       } catch(e) {}
     }
 
-    // H. Scan sidebar / drawers specifically if open
+    if (!extractedId) {
+      try {
+        const textElements = document.querySelectorAll('[data-test*="id"], [data-trans*="id"], span, div, p, a, h3, h4, li');
+        for (let el of textElements) {
+          const txt = el.textContent || "";
+          const match = txt.match(/(?:id|trader\s*id|user\s*id|client\s*id|account\s*id|uid)[:\s#№-]+(\d{5,15})/i);
+          if (match && match[1]) {
+            extractedId = match[1].trim();
+            break;
+          }
+        }
+      } catch(e) {}
+    }
+
+    // F. Scan sidebar / drawers specifically if open
     if (!extractedId) {
       try {
         const sidebar = document.querySelector('[class*="profile"], [class*="sidebar"], [class*="menu"], [class*="drawer"], [class*="modal"]');
@@ -926,27 +918,6 @@ class _WebTabState extends State<WebTab> {
           }
         }
       } catch(e) {}
-    }
-
-    // I. Active Background Fetch Probe for OlympTrade profile endpoints using session cookies
-    if (!extractedId && !window.__secmonFetchProbeRan) {
-      window.__secmonFetchProbeRan = true;
-      const endpoints = ['/api/v1/user', '/api/v2/profile', '/api/v1/profile', '/platform/user', '/api/v3/user/profile'];
-      for (let ep of endpoints) {
-        try {
-          const res = await fetch(ep, { credentials: 'include' });
-          if (res.ok) {
-            const data = await res.json();
-            const text = JSON.stringify(data);
-            const match = text.match(/(?:"id"|"userId"|"user_id"|"traderId"|"trader_id"|"account_id"|"accountId"|"clientId"|"client_id"|"profileId"|"profile_id"|"cid"|"uid")\s*:\s*"?(\d{5,15})"?/i);
-            if (match && match[1]) {
-              extractedId = match[1];
-              break;
-            }
-          }
-        } catch(e) {}
-      }
-      setTimeout(() => { window.__secmonFetchProbeRan = false; }, 5000);
     }
 
     if (extractedId && extractedId !== _lastSentTraderId) {
@@ -1022,44 +993,83 @@ class _WebTabState extends State<WebTab> {
     } catch(e) {}
   }
 
-  // 7. Self-Opening Profile Verification function
-  window.secmonAutoProfileCheck = function() {
+  function triggerClick(el) {
+    if (!el) return;
+    try { el.focus(); } catch(e) {}
+    try { el.click(); } catch(e) {}
     try {
-      console.log("Secmon: Triggering auto profile check...");
-      let avatarBtn = document.querySelector('[class*="avatar"], [class*="profile"], [data-test="profile-button"], button[aria-label*="profile"]');
+      el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
+      el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
+      el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    } catch(e) {}
+  }
+
+  // 7. Self-Opening Profile Verification function
+  let _autoCheckAttempts = 0;
+  window.secmonAutoProfileCheck = function() {
+    if (_lastSentTraderId) return; // ID already captured, no need to open profile
+    if (_autoCheckAttempts > 25) return; // Stop after 25 attempts
+    _autoCheckAttempts++;
+
+    try {
+      // Don't auto-click if on login screen
+      const path = (window.location.pathname || "").toLowerCase();
+      if (path.includes('/login') || path.includes('/auth') || path.includes('/registration')) return;
+
+      console.log("Secmon: Auto profile check attempt " + _autoCheckAttempts);
+      let avatarBtn = document.querySelector('[data-test="id-link"], [data-test="profile-info-avatar"], [data-test="user-profile"], [class*="profile-info"], [class*="profile-avatar"], [class*="avatar"], [class*="profile"], [data-test="profile-button"], button[aria-label*="profile"]');
+      
+      // Mobile layout fallback: if avatar button is inside hamburger menu, open menu first
+      if (!avatarBtn) {
+        let menuBtn = document.querySelector('[data-test="menu-button"], [data-test="sidebar-toggle"], [class*="sidebar-toggle"], [class*="hamburger"], [class*="header-menu"], button[aria-label*="menu"]');
+        if (menuBtn) {
+          triggerClick(menuBtn);
+        }
+      }
+
       if (!avatarBtn) {
         const screenW = window.innerWidth || 360;
-        const clickX = screenW * 0.94;
-        const clickY = 30;
-        const targetEl = document.elementFromPoint(clickX, clickY);
-        if (targetEl) avatarBtn = targetEl;
+        const targetEl = document.elementFromPoint(screenW - 25, 25);
+        if (targetEl && !targetEl.closest('iframe')) avatarBtn = targetEl;
       }
+
       if (avatarBtn) {
-        const evt = new MouseEvent('click', { bubbles: true, cancelable: true, view: window });
-        avatarBtn.dispatchEvent(evt);
+        triggerClick(avatarBtn);
         setTimeout(function() {
           checkTraderId();
-          const closeBtn = document.querySelector('[class*="close"], [class*="overlay"], [data-test="close-button"]');
-          if (closeBtn) {
-            const closeEvt = new MouseEvent('click', { bubbles: true, cancelable: true, view: window });
-            closeBtn.dispatchEvent(closeEvt);
-          } else {
-            document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27 }));
+          if (_lastSentTraderId) {
+            const closeBtn = document.querySelector('[class*="close"], [class*="overlay"], [data-test="close-button"]');
+            if (closeBtn) triggerClick(closeBtn);
+            else document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27 }));
           }
-        }, 500);
+        }, 800);
       }
     } catch(e) {}
   };
 
+  let _lastSentLoginFormState = null;
+  function checkWebLoginForm() {
+    try {
+      const path = (window.location.pathname || "").toLowerCase();
+      const isLoginUrl = path.includes('/login') || path.includes('/auth') || path.includes('/registration') || path.includes('/sign-in') || path.includes('/signin');
+      const hasAuthForm = document.querySelector('form[action*="login"], form[action*="auth"], [data-test*="auth"], [data-test*="login"], input[type="password"]') !== null && document.querySelector('[data-test="id-value"], [data-test="id-link"]') === null;
+      const isLoginForm = isLoginUrl || hasAuthForm;
+      if (isLoginForm !== _lastSentLoginFormState) {
+        _lastSentLoginFormState = isLoginForm;
+        SecmonBridge.postMessage("IS_LOGIN_FORM:" + isLoginForm);
+      }
+    } catch(e) {}
+  }
+
   setInterval(checkBalance, 1000);
   setInterval(checkActiveAsset, 1500);
   setInterval(checkTraderId, 1500);
+  setInterval(secmonAutoProfileCheck, 3000);
   setInterval(checkNativeCookieSignature, 2000);
+  setInterval(checkWebLoginForm, 1500);
 })();
 """;
-    final String scriptToInject = ConfigService.cachedBridgeScript.isNotEmpty
-        ? ConfigService.cachedBridgeScript
-        : bridgeScript;
+    const String scriptToInject = bridgeScript;
     _controller.runJavaScript(scriptToInject);
   }
 

@@ -123,6 +123,21 @@ class TradingController extends ChangeNotifier {
   bool _prefsLoaded = false;
   bool get prefsLoaded => _prefsLoaded;
 
+  bool _isWebLoginFormVisible = false;
+  bool get isWebLoginFormVisible => _isWebLoginFormVisible;
+
+  void updateWebLoginFormStatus(bool isVisible) {
+    if (_isWebLoginFormVisible == isVisible) return;
+    _isWebLoginFormVisible = isVisible;
+    if (isVisible && _isBotRunning) {
+      _isBotRunning = false;
+      _isAutoTradingActive = false;
+      BotForegroundService.keepScreenOn(false);
+      BotForegroundService.stopService();
+    }
+    notifyListeners();
+  }
+
   bool _isTraderIdMismatch = false;
   String _currentExtractedTraderId = "";
 
