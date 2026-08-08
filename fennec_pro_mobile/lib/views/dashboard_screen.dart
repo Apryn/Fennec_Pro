@@ -107,6 +107,129 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     );
   }
 
+  void _showActivationModal(BuildContext context) {
+    final textController = TextEditingController();
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.75),
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: CyberTheme.neonGreen, width: 1.0),
+          ),
+          backgroundColor: CyberTheme.cardBg,
+          title: const Row(
+            children: [
+              Icon(Icons.verified_user_outlined, color: CyberTheme.neonGreen, size: 22),
+              SizedBox(width: 10),
+              Text(
+                'Aktivasi Robot Trading',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Masukkan Trader ID Olymp Trade Anda untuk mengikat lisensi & mengaktifkan bot:',
+                style: TextStyle(fontSize: 12, color: CyberTheme.colorTextSecondary, height: 1.4),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: textController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+                decoration: InputDecoration(
+                  hintText: 'Contoh: 12345678',
+                  hintStyle: const TextStyle(color: CyberTheme.colorTextMuted, fontSize: 12),
+                  fillColor: Colors.white.withOpacity(0.05),
+                  filled: true,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Batal', style: TextStyle(color: CyberTheme.colorTextMuted, fontSize: 12)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final id = textController.text.trim();
+                if (id.isNotEmpty) {
+                  await SecmonState.auth.activate(id);
+                  if (context.mounted) Navigator.pop(dialogContext);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CyberTheme.neonGreen,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text(
+                'AKTIVASI',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showTraderIdMismatchDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.75),
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: CyberTheme.neonRed, width: 1.0),
+          ),
+          backgroundColor: CyberTheme.cardBg,
+          title: const Row(
+            children: [
+              Icon(Icons.gpp_bad_rounded, color: CyberTheme.neonRed, size: 22),
+              SizedBox(width: 10),
+              Text(
+                'Trader ID Tidak Sesuai',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white),
+              ),
+            ],
+          ),
+          content: Text(
+            'Akun Olymp Trade yang sedang aktif di Web ID nya berbeda dengan Trader ID lisensi terverifikasi Anda.\n\n'
+            'Lisensi Terverifikasi: ${SecmonState.auth.currentTraderId}\n'
+            'ID Terbaca di Web: ${SecmonState.trading.currentExtractedTraderId}\n\n'
+            'Silakan beralih kembali ke akun terverifikasi Anda untuk menjalankan otomatisasi.',
+            style: const TextStyle(fontSize: 12, color: CyberTheme.colorTextSecondary, height: 1.5),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CyberTheme.neonRed,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text(
+                'MENGERTI',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _openConfigModal(BuildContext context) {
     final trading = SecmonState.trading;
     final formatter = NumberFormat.currency(locale: 'id', symbol: '', decimalDigits: 0);
@@ -1024,9 +1147,19 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: () {
-                  if (!trading.isBotRunning && !trading.isPlatformReady) {
-                    _showPlatformOfflineDialog(context);
-                    return;
+                  if (!trading.isBotRunning) {
+                    if (SecmonState.auth.currentTraderId.isEmpty) {
+                      _showActivationModal(context);
+                      return;
+                    }
+                    if (trading.isTraderIdMismatch) {
+                      _showTraderIdMismatchDialog(context);
+                      return;
+                    }
+                    if (!trading.isPlatformReady) {
+                      _showPlatformOfflineDialog(context);
+                      return;
+                    }
                   }
                   trading.toggleBot();
                 },

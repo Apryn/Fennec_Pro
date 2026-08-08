@@ -126,7 +126,12 @@ class TradingController extends ChangeNotifier {
   bool _isTraderIdMismatch = false;
   String _currentExtractedTraderId = "";
 
-  bool get isTraderIdMismatch         => _isTraderIdMismatch;
+  bool get isTraderIdMismatch {
+    if (_currentExtractedTraderId.isEmpty) return false; // UNKNOWN = SAFE
+    final verifiedId = SecmonState.auth.currentTraderId;
+    if (verifiedId.isEmpty) return false;
+    return _currentExtractedTraderId != verifiedId;
+  }
   String get currentExtractedTraderId => _currentExtractedTraderId;
 
   // Getters
@@ -728,6 +733,22 @@ class TradingController extends ChangeNotifier {
     _resolvePendingTrade(isWin: isWin, isDraw: isDraw);
   }
 
+
+  void resetPlatformState() {
+    _isPlatformLoaded = false;
+    _currentAccountBalance = 0;
+    _currencySymbol = "Rp";
+    _currentExtractedTraderId = "";
+    _isTraderIdMismatch = false;
+    if (_isBotRunning) {
+      _isBotRunning = false;
+      _isAutoTradingActive = false;
+      BotForegroundService.keepScreenOn(false);
+      BotForegroundService.stopService();
+    }
+    notifyListeners();
+  }
+
   void updateTraderIdCheck(String extractedId) {
     final cleanId = extractedId.trim();
     if (cleanId.isEmpty) return;
@@ -735,7 +756,7 @@ class TradingController extends ChangeNotifier {
     _currentExtractedTraderId = cleanId;
     final verifiedId = SecmonState.auth.currentTraderId;
 
-    if (cleanId != verifiedId) {
+    if (verifiedId.isNotEmpty && cleanId != verifiedId) {
       if (!_isTraderIdMismatch) {
         _isTraderIdMismatch = true;
         // Stop the bot immediately!
